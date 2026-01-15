@@ -14,6 +14,7 @@ import MonthSelector from '@/components/overtime/MonthSelector';
 
 export default function Home() {
   const [formOpen, setFormOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const queryClient = useQueryClient();
 
@@ -53,13 +54,19 @@ export default function Home() {
     return { totalOtPay: pay, totalOtHours: minutes / 60 };
   }, [filteredSessions]);
 
-  // Create mutation
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.OvertimeSession.create(data),
-    onSuccess: () => {
+  // Create/Update mutation
+  const saveMutation = useMutation({
+    mutationFn: (payload) => {
+      if (payload.id) {
+        return base44.entities.OvertimeSession.update(payload.id, payload.data);
+      }
+      return base44.entities.OvertimeSession.create(payload);
+    },
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
       setFormOpen(false);
-      toast.success('Overtime entry saved!');
+      setEditingEntry(null);
+      toast.success(variables.id ? 'Entry updated!' : 'Overtime entry saved!');
     },
   });
 
@@ -71,6 +78,18 @@ export default function Home() {
       toast.success('Entry deleted');
     },
   });
+
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    setFormOpen(true);
+  };
+
+  const handleFormClose = (open) => {
+    setFormOpen(open);
+    if (!open) {
+      setEditingEntry(null);
+    }
+  };
 
   const isLoading = settingsLoading || sessionsLoading;
 
@@ -146,6 +165,7 @@ export default function Home() {
                   key={entry.id} 
                   entry={entry}
                   onDelete={deleteMutation.mutate}
+                  onEdit={handleEdit}
                 />
               ))}
             </div>
@@ -156,10 +176,11 @@ export default function Home() {
       {/* Overtime Form Modal */}
       <OvertimeForm 
         open={formOpen}
-        onOpenChange={setFormOpen}
-        onSubmit={createMutation.mutate}
+        onOpenChange={handleFormClose}
+        onSubmit={saveMutation.mutate}
         settings={settings}
-        isLoading={createMutation.isPending}
+        isLoading={saveMutation.isPending}
+        editingEntry={editingEntry}
       />
     </div>
   );

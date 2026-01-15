@@ -16,12 +16,27 @@ import {
 import { CalendarIcon, Clock, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, isLoading }) {
+export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, isLoading, editingEntry }) {
   const [date, setDate] = useState(new Date());
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [notes, setNotes] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // Populate form when editing
+  React.useEffect(() => {
+    if (editingEntry) {
+      setDate(new Date(editingEntry.date));
+      setStartTime(editingEntry.start_time);
+      setEndTime(editingEntry.end_time);
+      setNotes(editingEntry.notes || '');
+    } else {
+      setDate(new Date());
+      setStartTime('');
+      setEndTime('');
+      setNotes('');
+    }
+  }, [editingEntry, open]);
 
   const calculateDurationAndPay = () => {
     if (!startTime || !endTime) return { duration: 0, pay: 0 };
@@ -48,20 +63,20 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
   const handleSubmit = () => {
     const { duration, pay } = calculateDurationAndPay();
     
-    onSubmit({
+    const data = {
       date: format(date, 'yyyy-MM-dd'),
       start_time: startTime,
       end_time: endTime,
       duration_minutes: duration,
       ot_pay: pay,
       notes: notes.trim() || null
-    });
+    };
     
-    // Reset form
-    setDate(new Date());
-    setStartTime('');
-    setEndTime('');
-    setNotes('');
+    if (editingEntry) {
+      onSubmit({ id: editingEntry.id, data });
+    } else {
+      onSubmit(data);
+    }
   };
 
   const isValid = startTime && endTime && duration > 0;
@@ -71,7 +86,7 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-slate-900">
-            Log Extra Time
+            {editingEntry ? 'Edit Overtime Entry' : 'Log Extra Time'}
           </DialogTitle>
         </DialogHeader>
         
@@ -180,7 +195,7 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
             className="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-900"
           >
             <Save className="w-4 h-4 mr-2" />
-            {isLoading ? 'Saving...' : 'Save Entry'}
+            {isLoading ? 'Saving...' : editingEntry ? 'Update Entry' : 'Save Entry'}
           </Button>
         </DialogFooter>
       </DialogContent>

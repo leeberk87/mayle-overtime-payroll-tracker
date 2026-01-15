@@ -2,7 +2,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, Trash2, FileText } from "lucide-react";
+import { Clock, Trash2, FileText, Pencil } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export default function OvertimeEntryCard({ entry, onDelete }) {
+export default function OvertimeEntryCard({ entry, onDelete, onEdit }) {
   const hours = Math.floor(entry.duration_minutes / 60);
   const mins = entry.duration_minutes % 60;
   const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
@@ -52,16 +52,26 @@ export default function OvertimeEntryCard({ entry, onDelete }) {
             )}
           </div>
           
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="text-slate-400 hover:text-red-500 hover:bg-red-50 -mr-2"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </AlertDialogTrigger>
+          <div className="flex gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => onEdit(entry)}
+              className="text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+            
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="text-slate-400 hover:text-red-500 hover:bg-red-50 -mr-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Entry</AlertDialogTitle>
@@ -80,6 +90,7 @@ export default function OvertimeEntryCard({ entry, onDelete }) {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          </div>
         </div>
       </CardContent>
     </Card>
