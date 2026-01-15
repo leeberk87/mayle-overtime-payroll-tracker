@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,27 @@ import { toast } from "sonner";
 
 export default function Settings() {
   const queryClient = useQueryClient();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    base44.auth.me()
+      .then(setUser)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Skeleton className="h-32 w-32 rounded-xl" />
+      </div>
+    );
+  }
+
+  if (user?.role !== 'admin') {
+    return <Navigate to={createPageUrl('Home')} replace />;
+  }
   
   const { data: settingsData, isLoading } = useQuery({
     queryKey: ['settings'],
