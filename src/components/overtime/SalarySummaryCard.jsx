@@ -36,24 +36,25 @@ export default function SalarySummaryCard({ settings, totalOtPay, totalOtHours, 
           </div>
         </div>
         
-        <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-slate-300 text-xs mb-1">
-            <Clock className="w-3.5 h-3.5" />
-            Overtime Pay ({totalOtHours.toFixed(1)} hrs @ ₪{settings?.overtime_rate || 65}/hr)
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-slate-300 text-xs mb-1">
+              <Clock className="w-3.5 h-3.5" />
+              Overtime Pay
+            </div>
+            <p className="text-xl font-semibold text-emerald-400">
+              +₪{totalOtPay.toLocaleString()}
+            </p>
           </div>
-          <p className="text-xl font-semibold text-emerald-400">
-            +₪{totalOtPay.toLocaleString()}
-          </p>
-        </div>
-
-        <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-slate-300 text-xs mb-1">
-            <Receipt className="w-3.5 h-3.5" />
-            Expense Reimbursements
+          <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-slate-300 text-xs mb-1">
+              <Receipt className="w-3.5 h-3.5" />
+              Expenses
+            </div>
+            <p className="text-xl font-semibold text-orange-400">
+              +₪{totalExpenses.toLocaleString()}
+            </p>
           </div>
-          <p className="text-xl font-semibold text-orange-400">
-            +₪{totalExpenses.toLocaleString()}
-          </p>
         </div>
         
         <div className="border-t border-white/20 pt-4">
