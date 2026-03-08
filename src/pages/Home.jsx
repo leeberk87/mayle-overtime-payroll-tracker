@@ -16,8 +16,11 @@ import ExpenseForm from '@/components/overtime/ExpenseForm';
 import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
 
 export default function Home() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [expenseFormOpen, setExpenseFormOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
+  const [editingExpense, setEditingExpense] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const queryClient = useQueryClient();
 
