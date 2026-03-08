@@ -85,6 +85,49 @@ export default function Home() {
     },
   });
 
+  // Fetch expenses
+  const { data: expenses = [], isLoading: expensesLoading } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: () => base44.entities.Expense.list('-date'),
+  });
+
+  // Filter expenses by month
+  const filteredExpenses = useMemo(() => {
+    const monthStart = startOfMonth(selectedMonth);
+    const monthEnd = endOfMonth(selectedMonth);
+    return expenses.filter(e => {
+      const d = new Date(e.date);
+      return isWithinInterval(d, { start: monthStart, end: monthEnd });
+    });
+  }, [expenses, selectedMonth]);
+
+  const totalExpenses = useMemo(() =>
+    filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0),
+  [filteredExpenses]);
+
+  // Save expense mutation
+  const saveExpenseMutation = useMutation({
+    mutationFn: (payload) => {
+      if (payload.id) return base44.entities.Expense.update(payload.id, payload.data);
+      return base44.entities.Expense.create(payload);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      setExpenseFormOpen(false);
+      setEditingExpense(null);
+      toast.success(variables.id ? 'Expense updated!' : 'Expense saved!');
+    },
+  });
+
+  // Delete expense mutation
+  const deleteExpenseMutation = useMutation({
+    mutationFn: (id) => base44.entities.Expense.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast.success('Expense deleted');
+    },
+  });
+
   const handleEdit = (entry) => {
     setEditingEntry(entry);
     setFormOpen(true);
