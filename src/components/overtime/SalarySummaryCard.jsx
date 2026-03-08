@@ -1,10 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, Car, Clock, TrendingUp } from "lucide-react";
+import { Wallet, Car, Clock, TrendingUp, Receipt } from "lucide-react";
 
-export default function SalarySummaryCard({ settings, totalOtPay, totalOtHours }) {
+export default function SalarySummaryCard({ settings, totalOtPay, totalOtHours, totalExpenses = 0 }) {
   const basePlusTransport = (settings?.base_salary || 10000) + (settings?.transport_allowance || 250);
-  const grandTotal = basePlusTransport + totalOtPay;
+  const grandTotal = basePlusTransport + totalOtPay + totalExpenses;
   
   return (
     <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0 shadow-xl">
@@ -43,6 +43,16 @@ export default function SalarySummaryCard({ settings, totalOtPay, totalOtHours }
           </div>
           <p className="text-xl font-semibold text-emerald-400">
             +₪{totalOtPay.toLocaleString()}
+          </p>
+        </div>
+
+        <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
+          <div className="flex items-center gap-2 text-slate-300 text-xs mb-1">
+            <Receipt className="w-3.5 h-3.5" />
+            Expense Reimbursements
+          </div>
+          <p className="text-xl font-semibold text-orange-400">
+            +₪{totalExpenses.toLocaleString()}
           </p>
         </div>
         

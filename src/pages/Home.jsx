@@ -181,6 +181,7 @@ export default function Home() {
             settings={settings} 
             totalOtPay={totalOtPay}
             totalOtHours={totalOtHours}
+            totalExpenses={totalExpenses}
           />
         )}
 

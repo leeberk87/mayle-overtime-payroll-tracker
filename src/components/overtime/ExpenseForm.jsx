@@ -5,35 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from 'lucide-react';
-
-const CATEGORIES = {
-  food: 'Food & Drinks',
-  activities: 'Activities & Entry Fees',
-  transport: 'Transport',
-  other: 'Other',
-};
 
 export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, editingEntry }) {
   const [date, setDate] = useState(new Date());
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('other');
 
   useEffect(() => {
     if (editingEntry) {
       setDate(new Date(editingEntry.date));
       setDescription(editingEntry.description || '');
       setAmount(String(editingEntry.amount || ''));
-      setCategory(editingEntry.category || 'other');
     } else {
       setDate(new Date());
       setDescription('');
       setAmount('');
-      setCategory('other');
     }
   }, [editingEntry, open]);
 
@@ -42,7 +31,6 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
       date: format(date, 'yyyy-MM-dd'),
       description,
       amount: Number(amount),
-      category,
     };
     if (editingEntry) {
       onSubmit({ id: editingEntry.id, data: payload });
@@ -75,21 +63,6 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
                 <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
               </PopoverContent>
             </Popover>
-          </div>
-
-          {/* Category */}
-          <div className="space-y-1">
-            <Label>Category</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(CATEGORIES).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Description */}
