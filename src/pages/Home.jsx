@@ -4,13 +4,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Clock, FileText } from "lucide-react";
+import { Plus, Clock, FileText, Receipt } from "lucide-react";
 import { toast } from "sonner";
 
 import SalarySummaryCard from '@/components/overtime/SalarySummaryCard';
 import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
 import OvertimeForm from '@/components/overtime/OvertimeForm';
 import MonthSelector from '@/components/overtime/MonthSelector';
+import AddEntryMenu from '@/components/overtime/AddEntryMenu';
+import ExpenseForm from '@/components/overtime/ExpenseForm';
+import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
 
 export default function Home() {
   const [formOpen, setFormOpen] = useState(false);
