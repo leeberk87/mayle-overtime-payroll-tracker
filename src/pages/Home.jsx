@@ -259,7 +259,38 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Add Entry Menu */}
+      {/* Add Entry Menu - outside main wrapper, covers full screen */}
+      {menuOpen && (
+        <AddEntryMenu
+          onClose={() => setMenuOpen(false)}
+          onSelectOvertme={() => { setMenuOpen(false); setFormOpen(true); }}
+          onSelectExpense={() => { setMenuOpen(false); setExpenseFormOpen(true); }}
+        />
+      )}
+
+      {/* Overtime Form Modal */}
+      <OvertimeForm 
+        open={formOpen}
+        onOpenChange={handleFormClose}
+        onSubmit={saveMutation.mutate}
+        settings={settings}
+        isLoading={saveMutation.isPending}
+        editingEntry={editingEntry}
+      />
+
+      {/* Expense Form Modal */}
+      <ExpenseForm
+        open={expenseFormOpen}
+        onOpenChange={(open) => { setExpenseFormOpen(open); if (!open) setEditingExpense(null); }}
+        onSubmit={saveExpenseMutation.mutate}
+        isLoading={saveExpenseMutation.isPending}
+        editingEntry={editingExpense}
+      />
+    </div>
+  );
+}
+
+// REMOVE DUPLICATE BELOW
       {menuOpen && (
         <AddEntryMenu
           onClose={() => setMenuOpen(false)}
