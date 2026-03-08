@@ -225,6 +225,50 @@ export default function Home() {
         </div>
       </div>
 
+        {/* Expense Entries */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <Receipt className="w-4 h-4" />
+              Expense Reimbursements
+            </h2>
+            <span className="text-xs text-slate-500">
+              {filteredExpenses.length} {filteredExpenses.length === 1 ? 'entry' : 'entries'}
+              {filteredExpenses.length > 0 && ` · ₪${totalExpenses.toFixed(2)}`}
+            </span>
+          </div>
+
+          {isLoading ? (
+            <Skeleton className="h-20 w-full rounded-xl" />
+          ) : filteredExpenses.length === 0 ? (
+            <div className="bg-white rounded-xl border border-slate-100 p-6 text-center">
+              <Receipt className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-slate-500 text-sm">No expenses this month</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredExpenses.map(expense => (
+                <ExpenseEntryCard
+                  key={expense.id}
+                  entry={expense}
+                  onDelete={deleteExpenseMutation.mutate}
+                  onEdit={handleEditExpense}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Add Entry Menu */}
+      {menuOpen && (
+        <AddEntryMenu
+          onClose={() => setMenuOpen(false)}
+          onSelectOvertme={() => { setMenuOpen(false); setFormOpen(true); }}
+          onSelectExpense={() => { setMenuOpen(false); setExpenseFormOpen(true); }}
+        />
+      )}
+
       {/* Overtime Form Modal */}
       <OvertimeForm 
         open={formOpen}
@@ -233,6 +277,15 @@ export default function Home() {
         settings={settings}
         isLoading={saveMutation.isPending}
         editingEntry={editingEntry}
+      />
+
+      {/* Expense Form Modal */}
+      <ExpenseForm
+        open={expenseFormOpen}
+        onOpenChange={(open) => { setExpenseFormOpen(open); if (!open) setEditingExpense(null); }}
+        onSubmit={saveExpenseMutation.mutate}
+        isLoading={saveExpenseMutation.isPending}
+        editingEntry={editingExpense}
       />
     </div>
   );
