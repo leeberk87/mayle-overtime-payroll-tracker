@@ -135,12 +135,15 @@ export default function Home() {
 
   const handleFormClose = (open) => {
     setFormOpen(open);
-    if (!open) {
-      setEditingEntry(null);
-    }
+    if (!open) setEditingEntry(null);
   };
 
-  const isLoading = settingsLoading || sessionsLoading;
+  const handleEditExpense = (expense) => {
+    setEditingExpense(expense);
+    setExpenseFormOpen(true);
+  };
+
+  const isLoading = settingsLoading || sessionsLoading || expensesLoading;
 
   return (
     <div className="min-h-screen bg-slate-50">
