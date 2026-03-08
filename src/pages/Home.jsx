@@ -223,7 +223,6 @@ export default function Home() {
             </div>
           )}
         </div>
-      </div>
 
         {/* Expense Entries */}
         <div>
