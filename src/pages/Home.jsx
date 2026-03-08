@@ -156,11 +156,11 @@ export default function Home() {
               <p className="text-xs text-slate-500">Overtime & Salary Tracker</p>
             </div>
             <Button 
-              onClick={() => setFormOpen(true)}
+              onClick={() => setMenuOpen(true)}
               className="bg-slate-800 hover:bg-slate-900 shadow-lg"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Log Extra Time
+              Add Entry
             </Button>
           </div>
         </div>
