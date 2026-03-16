@@ -7,9 +7,11 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import __Layout from './Layout.jsx';
-import Home from './pages/Home.jsx';
-import Settings from './pages/Settings.jsx';
-import Requests from './pages/Requests';
+import { PAGES } from './pages.config.js';
+
+const Home = PAGES['Home'];
+const Settings = PAGES['Settings'];
+const Requests = PAGES['Requests'];
 
 const LayoutWrapper = ({ children, currentPageName }) => (
   <__Layout currentPageName={currentPageName}>{children}</__Layout>
