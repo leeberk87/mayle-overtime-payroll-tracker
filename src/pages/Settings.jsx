@@ -55,6 +55,18 @@ export default function Settings() {
     },
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Skeleton className="h-32 w-32 rounded-xl" />
+      </div>
+    );
+  }
+
+  if (user?.role !== 'admin') {
+    return <Navigate to={createPageUrl('Home')} replace />;
+  }
+
   const handleSave = () => {
     saveMutation.mutate({
       base_salary: Number(baseSalary),
