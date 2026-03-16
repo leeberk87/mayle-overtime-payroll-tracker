@@ -11,7 +11,7 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const isEmployer = user?.role === 'employer';
+  const isEmployer = user?.role === 'admin';
 
   const { data: otRequests = [] } = useQuery({
     queryKey: ['ot-requests-mine'],

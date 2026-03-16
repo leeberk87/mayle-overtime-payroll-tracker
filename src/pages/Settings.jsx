@@ -59,7 +59,7 @@ export default function Settings() {
     });
   };
 
-  if (!user || user.role !== 'employer') {
+  if (!user || user.role !== 'admin') {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <p className="text-slate-500">Access denied.</p>

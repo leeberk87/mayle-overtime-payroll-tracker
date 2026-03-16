@@ -32,8 +32,8 @@ export default function Home() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const isEmployer = user?.role === 'employer';
-  const isNanny = user?.role === 'nanny';
+  const isEmployer = user?.role === 'admin';
+  const isNanny = user?.role === 'user';
 
   const queryClient = useQueryClient();
 
