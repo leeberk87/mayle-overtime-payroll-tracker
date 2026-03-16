@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ export default function RequestExpenseForm({ open, onOpenChange, onSubmit, isLoa
   const [amount, setAmount] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) {
       setDate(new Date());
       setDescription('');
