@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 import { toast } from 'sonner';
-import { Plus } from 'lucide-react';
+import { Plus, Clock, FileText, Receipt, ReceiptText } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 import MonthSelector from '@/components/overtime/MonthSelector';
