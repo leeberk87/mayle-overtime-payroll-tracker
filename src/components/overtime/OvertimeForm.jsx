@@ -26,7 +26,9 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
   // Populate form when editing
   React.useEffect(() => {
     if (editingEntry) {
-      setDate(new Date(editingEntry.date));
+      // Parse date safely to avoid timezone offset issues
+      const [y, m, d] = (editingEntry.date?.split('T')[0] || editingEntry.date || '').split('-').map(Number);
+      setDate(y ? new Date(y, m - 1, d) : new Date());
       setStartTime(editingEntry.start_time);
       setEndTime(editingEntry.end_time);
       setNotes(editingEntry.notes || '');
