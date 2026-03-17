@@ -28,7 +28,10 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit }) {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-medium text-slate-900">
-                {format(new Date(entry.date), 'EEE, MMM d')}
+                {(() => {
+                  const [y, m, d] = (entry.date?.split('T')[0] || entry.date || '').split('-').map(Number);
+                  return y ? format(new Date(y, m - 1, d), 'EEE, MMM d') : '';
+                })()}
               </span>
               <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
                 {entry.start_time} – {entry.end_time}
