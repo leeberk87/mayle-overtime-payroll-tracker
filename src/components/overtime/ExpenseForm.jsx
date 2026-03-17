@@ -16,7 +16,8 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
 
   useEffect(() => {
     if (editingEntry) {
-      setDate(new Date(editingEntry.date));
+      const [y, m, d] = (editingEntry.date?.split('T')[0] || editingEntry.date || '').split('-').map(Number);
+      setDate(y ? new Date(y, m - 1, d) : new Date());
       setDescription(editingEntry.description || '');
       setAmount(String(editingEntry.amount || ''));
     } else {
