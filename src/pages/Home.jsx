@@ -173,33 +173,48 @@ export default function Home() {
           <>
             <SalarySummaryCard settings={settings} totalOtPay={totalOtPay} totalOtHours={totalOtHours} totalExpenses={totalExpenses} />
 
-            {monthOT.length > 0 && (
-              <div>
-                <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">Overtime Sessions</h2>
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                  <Clock className="w-4 h-4" /> Overtime Entries
+                </h2>
+                <span className="text-sm text-slate-400">{monthOT.length} {monthOT.length === 1 ? 'entry' : 'entries'}</span>
+              </div>
+              {monthOT.length === 0 ? (
+                <div className="bg-white rounded-xl border border-slate-100 p-10 text-center">
+                  <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 text-sm font-medium">No overtime entries this month</p>
+                  <p className="text-slate-400 text-xs mt-1">Tap "Add" to log one</p>
+                </div>
+              ) : (
                 <div className="space-y-3">
                   {monthOT.map(entry => (
                     <OvertimeEntryCard key={entry.id} entry={entry} onDelete={deleteOTMutation.mutate} onEdit={handleEditOT} />
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {monthExpenses.length > 0 && (
-              <div>
-                <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">Expenses</h2>
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                  <Receipt className="w-4 h-4" /> Expense Reimbursements
+                </h2>
+                <span className="text-sm text-slate-400">{monthExpenses.length} {monthExpenses.length === 1 ? 'entry' : 'entries'}</span>
+              </div>
+              {monthExpenses.length === 0 ? (
+                <div className="bg-white rounded-xl border border-slate-100 p-10 text-center">
+                  <ReceiptText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 text-sm font-medium">No expenses this month</p>
+                </div>
+              ) : (
                 <div className="space-y-3">
                   {monthExpenses.map(entry => (
                     <ExpenseEntryCard key={entry.id} entry={entry} onDelete={deleteExpenseMutation.mutate} onEdit={handleEditExpense} />
                   ))}
                 </div>
-              </div>
-            )}
-
-            {monthOT.length === 0 && monthExpenses.length === 0 && (
-              <div className="bg-white rounded-xl border border-slate-100 p-10 text-center">
-                <p className="text-slate-400 text-sm">No entries for this month.</p>
-              </div>
-            )}
+              )}
+            </div>
           </>
         )}
 
