@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function OvertimeEntryCard({ entry, onDelete, onEdit }) {
-  const hours = Math.floor(entry.duration_minutes / 60);
-  const mins = entry.duration_minutes % 60;
+  const duration = entry.duration_minutes || 0;
+  const hours = Math.floor(duration / 60);
+  const mins = duration % 60;
   const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   
   return (
