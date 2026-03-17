@@ -1,302 +1,292 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
-import { toast } from 'sonner';
-import { Plus, Clock, FileText, Receipt, ReceiptText } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Clock, FileText, Receipt } from "lucide-react";
+import { toast } from "sonner";
 
-import MonthSelector from '@/components/overtime/MonthSelector';
 import SalarySummaryCard from '@/components/overtime/SalarySummaryCard';
 import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
-import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
 import OvertimeForm from '@/components/overtime/OvertimeForm';
-import ExpenseForm from '@/components/overtime/ExpenseForm';
+import MonthSelector from '@/components/overtime/MonthSelector';
 import AddEntryMenu from '@/components/overtime/AddEntryMenu';
-import RequestOvertimeForm from '@/components/overtime/RequestOvertimeForm';
-import RequestExpenseForm from '@/components/overtime/RequestExpenseForm';
-import RequestCard from '@/components/overtime/RequestCard';
+import ExpenseForm from '@/components/overtime/ExpenseForm';
+import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [showAddMenu, setShowAddMenu] = useState(false);
-  const [showOTForm, setShowOTForm] = useState(false);
-  const [showExpenseForm, setShowExpenseForm] = useState(false);
-  const [showRequestOTForm, setShowRequestOTForm] = useState(false);
-  const [showRequestExpenseForm, setShowRequestExpenseForm] = useState(false);
-  const [editingOT, setEditingOT] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [expenseFormOpen, setExpenseFormOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState(null);
   const [editingExpense, setEditingExpense] = useState(null);
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const isEmployer = user?.role === 'admin';
-  const isNanny = user?.role === 'user';
-
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
   const queryClient = useQueryClient();
 
-  const monthStart = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
-  const monthEnd = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
-
-  const { data: settingsList = [] } = useQuery({
+  // Fetch settings
+  const { data: settingsData, isLoading: settingsLoading } = useQuery({
     queryKey: ['settings'],
-    queryFn: () => base44.entities.AppSettings.list('-effective_date'),
+    queryFn: () => base44.entities.AppSettings.list(),
+  });
+  
+  const settings = settingsData?.[0] || {
+    base_salary: 10000,
+    transport_allowance: 250,
+    overtime_rate: 65
+  };
+
+  // Fetch all overtime sessions
+  const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
+    queryKey: ['overtime-sessions'],
+    queryFn: () => base44.entities.OvertimeSession.list('-date'),
   });
 
-  const settings = settingsList.find(s =>
-    s.effective_date && s.effective_date <= monthEnd
-  ) || settingsList[settingsList.length - 1] || null;
+  // Filter sessions by selected month
+  const filteredSessions = useMemo(() => {
+    const monthStart = startOfMonth(selectedMonth);
+    const monthEnd = endOfMonth(selectedMonth);
+    
+    return sessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      return isWithinInterval(sessionDate, { start: monthStart, end: monthEnd });
+    });
+  }, [sessions, selectedMonth]);
 
-  const { data: overtimeSessions = [] } = useQuery({
-    queryKey: ['overtime-sessions', monthStart, monthEnd],
-    queryFn: () => base44.entities.OvertimeRequest.filter({ status: 'approved' }, '-date'),
-    enabled: isEmployer,
+  // Calculate totals
+  const { totalOtPay, totalOtHours } = useMemo(() => {
+    const pay = filteredSessions.reduce((sum, s) => sum + (s.ot_pay || 0), 0);
+    const minutes = filteredSessions.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
+    return { totalOtPay: pay, totalOtHours: minutes / 60 };
+  }, [filteredSessions]);
+
+  // Create/Update mutation
+  const saveMutation = useMutation({
+    mutationFn: (payload) => {
+      if (payload.id) {
+        return base44.entities.OvertimeSession.update(payload.id, payload.data);
+      }
+      return base44.entities.OvertimeSession.create(payload);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
+      setFormOpen(false);
+      setEditingEntry(null);
+      toast.success(variables.id ? 'Entry updated!' : 'Overtime entry saved!');
+    },
   });
 
-  const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses', monthStart, monthEnd],
-    queryFn: () => base44.entities.ExpenseRequest.filter({ status: 'approved' }, '-date'),
-    enabled: isEmployer,
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.OvertimeSession.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
+      toast.success('Entry deleted');
+    },
   });
 
-  const { data: myOTRequests = [] } = useQuery({
-    queryKey: ['my-ot-requests'],
-    queryFn: () => base44.entities.OvertimeRequest.filter({ created_by: user?.email }, '-created_date'),
-    enabled: isNanny && !!user,
+  // Fetch expenses
+  const { data: expenses = [], isLoading: expensesLoading } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: () => base44.entities.Expense.list('-date'),
   });
 
-  const { data: myExpenseRequests = [] } = useQuery({
-    queryKey: ['my-expense-requests'],
-    queryFn: () => base44.entities.ExpenseRequest.filter({ created_by: user?.email }, '-created_date'),
-    enabled: isNanny && !!user,
+  // Filter expenses by month
+  const filteredExpenses = useMemo(() => {
+    const monthStart = startOfMonth(selectedMonth);
+    const monthEnd = endOfMonth(selectedMonth);
+    return expenses.filter(e => {
+      const d = new Date(e.date);
+      return isWithinInterval(d, { start: monthStart, end: monthEnd });
+    });
+  }, [expenses, selectedMonth]);
+
+  const totalExpenses = useMemo(() =>
+    filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0),
+  [filteredExpenses]);
+
+  // Save expense mutation
+  const saveExpenseMutation = useMutation({
+    mutationFn: (payload) => {
+      if (payload.id) return base44.entities.Expense.update(payload.id, payload.data);
+      return base44.entities.Expense.create(payload);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      setExpenseFormOpen(false);
+      setEditingExpense(null);
+      toast.success(variables.id ? 'Expense updated!' : 'Expense saved!');
+    },
   });
 
-  const monthOT = overtimeSessions.filter(s => s.date >= monthStart && s.date <= monthEnd);
-  const monthExpenses = expenses.filter(e => e.date >= monthStart && e.date <= monthEnd);
-  const monthMyOT = myOTRequests.filter(r => r.date >= monthStart && r.date <= monthEnd);
-  const monthMyExpenses = myExpenseRequests.filter(r => r.date >= monthStart && r.date <= monthEnd);
-
-  const totalOtPay = monthOT.reduce((sum, s) => sum + (s.ot_pay || 0), 0);
-  const totalOtHours = monthOT.reduce((sum, s) => sum + (s.duration_minutes || 0), 0) / 60;
-  const totalExpenses = monthExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-
-  const createOTMutation = useMutation({
-    mutationFn: (data) => base44.entities.OvertimeRequest.create({ ...data, status: 'approved' }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }); toast.success('Overtime entry saved!'); setShowOTForm(false); },
-  });
-
-  const updateOTMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.OvertimeRequest.update(id, data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }); toast.success('Overtime entry updated!'); setShowOTForm(false); setEditingOT(null); },
-  });
-
-  const deleteOTMutation = useMutation({
-    mutationFn: (id) => base44.entities.OvertimeRequest.delete(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }); toast.success('Entry deleted.'); },
-  });
-
-  const createExpenseMutation = useMutation({
-    mutationFn: (data) => base44.entities.ExpenseRequest.create({ ...data, status: 'approved' }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); toast.success('Expense saved!'); setShowExpenseForm(false); },
-  });
-
-  const updateExpenseMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.ExpenseRequest.update(id, data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); toast.success('Expense updated!'); setShowExpenseForm(false); setEditingExpense(null); },
-  });
-
+  // Delete expense mutation
   const deleteExpenseMutation = useMutation({
-    mutationFn: (id) => base44.entities.ExpenseRequest.delete(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); toast.success('Expense deleted.'); },
+    mutationFn: (id) => base44.entities.Expense.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast.success('Expense deleted');
+    },
   });
 
-  const submitOTRequestMutation = useMutation({
-    mutationFn: (data) => base44.entities.OvertimeRequest.create({ ...data, submitted_by_name: user?.full_name }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['my-ot-requests'] }); toast.success('Overtime request submitted!'); setShowRequestOTForm(false); },
-  });
-
-  const submitExpenseRequestMutation = useMutation({
-    mutationFn: (data) => base44.entities.ExpenseRequest.create({ ...data, submitted_by_name: user?.full_name }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['my-expense-requests'] }); toast.success('Expense request submitted!'); setShowRequestExpenseForm(false); },
-  });
-
-  const handleOTSubmit = (data) => {
-    if (editingOT) updateOTMutation.mutate(data);
-    else createOTMutation.mutate(data);
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    setFormOpen(true);
   };
 
-  const handleExpenseSubmit = (data) => {
-    if (editingExpense) updateExpenseMutation.mutate(data);
-    else createExpenseMutation.mutate(data);
+  const handleFormClose = (open) => {
+    setFormOpen(open);
+    if (!open) setEditingEntry(null);
   };
 
-  const handleEditOT = (entry) => { setEditingOT(entry); setShowOTForm(true); };
-  const handleEditExpense = (entry) => { setEditingExpense(entry); setShowExpenseForm(true); };
+  const handleEditExpense = (expense) => {
+    setEditingExpense(expense);
+    setExpenseFormOpen(true);
+  };
 
-  if (!user) return null;
-
-  const employeeLabel = settings?.employee_role_label || 'Nanny';
+  const isLoading = settingsLoading || sessionsLoading || expensesLoading;
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Header */}
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-slate-900">
-                {isEmployer ? `${employeeLabel} Tracker` : 'My Work Log'}
-              </h1>
-              <p className="text-xs text-slate-500">
-                {isEmployer ? `Manage ${employeeLabel.toLowerCase()} hours & expenses` : 'Your hours and expenses'}
-              </p>
+              <h1 className="text-xl font-bold text-slate-900">Mayle</h1>
+              <p className="text-xs text-slate-500">Overtime & Salary Tracker</p>
             </div>
-            {isEmployer && (
-              <Button onClick={() => setShowAddMenu(true)} className="bg-slate-800 hover:bg-slate-900 rounded-xl gap-2">
-                <Plus className="w-4 h-4" /> Add
-              </Button>
-            )}
-            {isNanny && (
-              <Button onClick={() => setShowAddMenu(true)} className="bg-slate-800 hover:bg-slate-900 rounded-xl gap-2">
-                <Plus className="w-4 h-4" /> Request
-              </Button>
-            )}
+            <Button 
+              onClick={() => setMenuOpen(true)}
+              className="bg-slate-800 hover:bg-slate-900 shadow-lg"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Entry
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
-        <MonthSelector currentMonth={currentMonth} onChange={setCurrentMonth} />
+        {/* Month Selector */}
+        <MonthSelector 
+          currentMonth={selectedMonth} 
+          onChange={setSelectedMonth} 
+        />
 
-        {isEmployer && (
-          <>
-            <SalarySummaryCard settings={settings} totalOtPay={totalOtPay} totalOtHours={totalOtHours} totalExpenses={totalExpenses} />
-
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-semibold text-slate-800 flex items-center gap-2">
-                  <Clock className="w-4 h-4" /> Overtime Entries
-                </h2>
-                <span className="text-sm text-slate-400">{monthOT.length} {monthOT.length === 1 ? 'entry' : 'entries'}</span>
-              </div>
-              {monthOT.length === 0 ? (
-                <div className="bg-white rounded-xl border border-slate-100 p-10 text-center">
-                  <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500 text-sm font-medium">No overtime entries this month</p>
-                  <p className="text-slate-400 text-xs mt-1">Tap "Add" to log one</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {monthOT.map(entry => (
-                    <OvertimeEntryCard key={entry.id} entry={entry} onDelete={deleteOTMutation.mutate} onEdit={handleEditOT} />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-semibold text-slate-800 flex items-center gap-2">
-                  <Receipt className="w-4 h-4" /> Expense Reimbursements
-                </h2>
-                <span className="text-sm text-slate-400">{monthExpenses.length} {monthExpenses.length === 1 ? 'entry' : 'entries'}</span>
-              </div>
-              {monthExpenses.length === 0 ? (
-                <div className="bg-white rounded-xl border border-slate-100 p-10 text-center">
-                  <ReceiptText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500 text-sm font-medium">No expenses this month</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {monthExpenses.map(entry => (
-                    <ExpenseEntryCard key={entry.id} entry={entry} onDelete={deleteExpenseMutation.mutate} onEdit={handleEditExpense} />
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
+        {/* Salary Summary */}
+        {isLoading ? (
+          <Skeleton className="h-64 w-full rounded-xl" />
+        ) : (
+          <SalarySummaryCard 
+            settings={settings} 
+            totalOtPay={totalOtPay}
+            totalOtHours={totalOtHours}
+            totalExpenses={totalExpenses}
+          />
         )}
 
-        {isNanny && (
-          <>
-            {monthMyOT.length === 0 && monthMyExpenses.length === 0 && (
-              <div className="bg-white rounded-xl border border-slate-100 p-10 text-center">
-                <p className="text-slate-400 text-sm">No requests submitted this month.</p>
-                <p className="text-slate-400 text-xs mt-1">Tap "Request" to submit hours or expenses.</p>
-              </div>
-            )}
+        {/* Overtime Entries */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Overtime Entries
+            </h2>
+            <span className="text-xs text-slate-500">
+              {filteredSessions.length} {filteredSessions.length === 1 ? 'entry' : 'entries'}
+            </span>
+          </div>
 
-            {monthMyOT.length > 0 && (
-              <div>
-                <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">My Overtime Requests</h2>
-                <div className="space-y-3">
-                  {monthMyOT.map(req => (
-                    <RequestCard key={req.id} request={req} type="overtime" />
-                  ))}
-                </div>
-              </div>
-            )}
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <Skeleton key={i} className="h-24 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : filteredSessions.length === 0 ? (
+            <div className="bg-white rounded-xl border border-slate-100 p-8 text-center">
+              <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 text-sm">No overtime entries this month</p>
+              <p className="text-slate-400 text-xs mt-1">
+                Tap "Log Extra Time" to add one
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredSessions.map(entry => (
+                <OvertimeEntryCard 
+                  key={entry.id} 
+                  entry={entry}
+                  onDelete={deleteMutation.mutate}
+                  onEdit={handleEdit}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
-            {monthMyExpenses.length > 0 && (
-              <div>
-                <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">My Expense Requests</h2>
-                <div className="space-y-3">
-                  {monthMyExpenses.map(req => (
-                    <RequestCard key={req.id} request={req} type="expense" />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
+        {/* Expense Entries */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <Receipt className="w-4 h-4" />
+              Expense Reimbursements
+            </h2>
+            <span className="text-xs text-slate-500">
+              {filteredExpenses.length} {filteredExpenses.length === 1 ? 'entry' : 'entries'}
+              {filteredExpenses.length > 0 && ` · ₪${totalExpenses.toFixed(2)}`}
+            </span>
+          </div>
+
+          {isLoading ? (
+            <Skeleton className="h-20 w-full rounded-xl" />
+          ) : filteredExpenses.length === 0 ? (
+            <div className="bg-white rounded-xl border border-slate-100 p-6 text-center">
+              <Receipt className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-slate-500 text-sm">No expenses this month</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredExpenses.map(expense => (
+                <ExpenseEntryCard
+                  key={expense.id}
+                  entry={expense}
+                  onDelete={deleteExpenseMutation.mutate}
+                  onEdit={handleEditExpense}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {showAddMenu && (
+      {/* Add Entry Menu - outside main wrapper, covers full screen */}
+      {menuOpen && (
         <AddEntryMenu
-          onClose={() => setShowAddMenu(false)}
-          onSelectOvertme={() => { setShowAddMenu(false); isEmployer ? setShowOTForm(true) : setShowRequestOTForm(true); }}
-          onSelectExpense={() => { setShowAddMenu(false); isEmployer ? setShowExpenseForm(true) : setShowRequestExpenseForm(true); }}
+          onClose={() => setMenuOpen(false)}
+          onSelectOvertme={() => { setMenuOpen(false); setFormOpen(true); }}
+          onSelectExpense={() => { setMenuOpen(false); setExpenseFormOpen(true); }}
         />
       )}
 
-      {isEmployer && (
-        <>
-          <OvertimeForm
-            open={showOTForm}
-            onOpenChange={(v) => { setShowOTForm(v); if (!v) setEditingOT(null); }}
-            onSubmit={handleOTSubmit}
-            settings={settings}
-            isLoading={createOTMutation.isPending || updateOTMutation.isPending}
-            editingEntry={editingOT}
-          />
-          <ExpenseForm
-            open={showExpenseForm}
-            onOpenChange={(v) => { setShowExpenseForm(v); if (!v) setEditingExpense(null); }}
-            onSubmit={handleExpenseSubmit}
-            isLoading={createExpenseMutation.isPending || updateExpenseMutation.isPending}
-            editingEntry={editingExpense}
-          />
-        </>
-      )}
+      {/* Overtime Form Modal */}
+      <OvertimeForm 
+        open={formOpen}
+        onOpenChange={handleFormClose}
+        onSubmit={saveMutation.mutate}
+        settings={settings}
+        isLoading={saveMutation.isPending}
+        editingEntry={editingEntry}
+      />
 
-      {isNanny && (
-        <>
-          <RequestOvertimeForm
-            open={showRequestOTForm}
-            onOpenChange={setShowRequestOTForm}
-            onSubmit={submitOTRequestMutation.mutate}
-            settings={settings}
-            isLoading={submitOTRequestMutation.isPending}
-          />
-          <RequestExpenseForm
-            open={showRequestExpenseForm}
-            onOpenChange={setShowRequestExpenseForm}
-            onSubmit={submitExpenseRequestMutation.mutate}
-            isLoading={submitExpenseRequestMutation.isPending}
-          />
-        </>
-      )}
+      {/* Expense Form Modal */}
+      <ExpenseForm
+        open={expenseFormOpen}
+        onOpenChange={(open) => { setExpenseFormOpen(open); if (!open) setEditingExpense(null); }}
+        onSubmit={saveExpenseMutation.mutate}
+        isLoading={saveExpenseMutation.isPending}
+        editingEntry={editingExpense}
+      />
     </div>
   );
 }

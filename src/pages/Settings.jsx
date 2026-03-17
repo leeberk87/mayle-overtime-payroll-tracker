@@ -1,195 +1,217 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ArrowLeft, Save, Plus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Save, Wallet, Car, Clock, Info } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Settings() {
-  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me()
+      .then(setUser)
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  const { data: settingsList = [], isLoading } = useQuery({
-    queryKey: ['settings'],
-    queryFn: () => base44.entities.AppSettings.list('-effective_date'),
-  });
-
-  const [form, setForm] = useState({
-    base_salary: '',
-    transport_allowance: '',
-    overtime_rate: '',
-    employee_role_label: '',
-    effective_date: format(new Date(), 'yyyy-MM-dd'),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.AppSettings.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
-      toast.success('Settings saved!');
-      setForm({ base_salary: '', transport_allowance: '', overtime_rate: '', employee_role_label: '', effective_date: format(new Date(), 'yyyy-MM-dd') });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.AppSettings.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
-      toast.success('Settings entry deleted.');
-    },
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    createMutation.mutate({
-      base_salary: parseFloat(form.base_salary),
-      transport_allowance: parseFloat(form.transport_allowance),
-      overtime_rate: parseFloat(form.overtime_rate),
-      employee_role_label: form.employee_role_label || 'Nanny',
-      effective_date: form.effective_date,
-    });
-  };
-
-  if (!user || user.role !== 'admin') {
+  if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <p className="text-slate-500">Access denied.</p>
+        <Skeleton className="h-32 w-32 rounded-xl" />
       </div>
     );
   }
 
+  if (user?.role !== 'admin') {
+    return <Navigate to={createPageUrl('Home')} replace />;
+  }
+  
+  const { data: settingsData, isLoading } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => base44.entities.AppSettings.list(),
+  });
+
+  const existingSettings = settingsData?.[0];
+  
+  const [baseSalary, setBaseSalary] = useState(10000);
+  const [transport, setTransport] = useState(250);
+  const [overtimeRate, setOvertimeRate] = useState(65);
+
+  useEffect(() => {
+    if (existingSettings) {
+      setBaseSalary(existingSettings.base_salary || 10000);
+      setTransport(existingSettings.transport_allowance || 250);
+      setOvertimeRate(existingSettings.overtime_rate || 65);
+    }
+  }, [existingSettings]);
+
+  const saveMutation = useMutation({
+    mutationFn: async (data) => {
+      if (existingSettings) {
+        return base44.entities.AppSettings.update(existingSettings.id, data);
+      } else {
+        return base44.entities.AppSettings.create(data);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      toast.success('Settings saved successfully!');
+    },
+  });
+
+  const handleSave = () => {
+    saveMutation.mutate({
+      base_salary: Number(baseSalary),
+      transport_allowance: Number(transport),
+      overtime_rate: Number(overtimeRate)
+    });
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Header */}
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <Link to="/Home">
+            <Link to={createPageUrl('Home')}>
               <Button variant="ghost" size="icon" className="text-slate-600">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
             <div>
               <h1 className="text-xl font-bold text-slate-900">Settings</h1>
-              <p className="text-xs text-slate-500">Manage salary rates</p>
+              <p className="text-xs text-slate-500">Configure salary constants</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
-        {/* Add new settings entry */}
-        <Card>
-          <CardHeader className="pb-2">
-            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <Plus className="w-4 h-4" /> Add Rate Entry
-            </h2>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Base Salary (₪)</Label>
-                  <Input
-                    type="number"
-                    value={form.base_salary}
-                    onChange={e => setForm({ ...form, base_salary: e.target.value })}
-                    placeholder="e.g. 10000"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Transport (₪)</Label>
-                  <Input
-                    type="number"
-                    value={form.transport_allowance}
-                    onChange={e => setForm({ ...form, transport_allowance: e.target.value })}
-                    placeholder="e.g. 250"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">OT Rate (₪/hr)</Label>
-                  <Input
-                    type="number"
-                    value={form.overtime_rate}
-                    onChange={e => setForm({ ...form, overtime_rate: e.target.value })}
-                    placeholder="e.g. 65"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Employee Label</Label>
-                  <Input
-                    type="text"
-                    value={form.employee_role_label}
-                    onChange={e => setForm({ ...form, employee_role_label: e.target.value })}
-                    placeholder="e.g. Nanny"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Effective From</Label>
-                <Input
-                  type="date"
-                  value={form.effective_date}
-                  onChange={e => setForm({ ...form, effective_date: e.target.value })}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 gap-2" disabled={createMutation.isPending}>
-                <Save className="w-4 h-4" />
-                {createMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </form>
+        {/* Info Card */}
+        <Card className="bg-blue-50 border-blue-100">
+          <CardContent className="p-4">
+            <div className="flex gap-3">
+              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-blue-800">
+                These values are used to calculate your monthly salary summary. 
+                Changes will apply to all months.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Existing settings history */}
-        {settingsList.length > 0 && (
-          <div>
-            <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">Rate History</h2>
-            <div className="space-y-3">
-              {settingsList.map((s, i) => (
-                <Card key={s.id} className={i === 0 ? 'border-slate-800' : ''}>
-                  <CardContent className="py-3 px-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        {i === 0 && <span className="text-[10px] font-bold text-slate-800 uppercase tracking-wider">Current</span>}
-                        <p className="text-xs text-slate-500">Effective: {s.effective_date || 'Always'}</p>
-                        <div className="flex gap-3 text-sm text-slate-700 mt-1">
-                          <span>₪{s.base_salary?.toLocaleString()} base</span>
-                          <span>·</span>
-                          <span>₪{s.transport_allowance} transport</span>
-                          <span>·</span>
-                          <span>₪{s.overtime_rate}/hr OT</span>
-                        </div>
-                        {s.employee_role_label && (
-                          <p className="text-xs text-slate-400">Label: {s.employee_role_label}</p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-400 hover:text-red-600 hover:bg-red-50 text-xs"
-                        onClick={() => deleteMutation.mutate(s.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
           </div>
+        ) : (
+          <>
+            {/* Base Salary */}
+            <Card className="border-slate-100 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <Wallet className="w-4 h-4 text-slate-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Base Salary</CardTitle>
+                    <CardDescription className="text-xs">
+                      Fixed monthly salary before overtime
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₪</span>
+                  <Input
+                    type="number"
+                    value={baseSalary}
+                    onChange={(e) => setBaseSalary(e.target.value)}
+                    className="pl-8 text-lg font-semibold"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Transport Allowance */}
+            <Card className="border-slate-100 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <Car className="w-4 h-4 text-slate-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Transport Allowance</CardTitle>
+                    <CardDescription className="text-xs">
+                      Monthly travel/commute allowance
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₪</span>
+                  <Input
+                    type="number"
+                    value={transport}
+                    onChange={(e) => setTransport(e.target.value)}
+                    className="pl-8 text-lg font-semibold"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Overtime Rate */}
+            <Card className="border-slate-100 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <Clock className="w-4 h-4 text-slate-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Overtime Rate</CardTitle>
+                    <CardDescription className="text-xs">
+                      Hourly rate for overtime hours
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₪</span>
+                  <Input
+                    type="number"
+                    value={overtimeRate}
+                    onChange={(e) => setOvertimeRate(e.target.value)}
+                    className="pl-8 text-lg font-semibold"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">/hr</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Save Button */}
+            <Button 
+              onClick={handleSave}
+              disabled={saveMutation.isPending}
+              className="w-full bg-slate-800 hover:bg-slate-900 py-6 text-base shadow-lg"
+            >
+              <Save className="w-5 h-5 mr-2" />
+              {saveMutation.isPending ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </>
         )}
       </div>
     </div>
