@@ -24,17 +24,19 @@ export default function Home() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const queryClient = useQueryClient();
 
-  // Fetch settings
+  // Fetch all settings snapshots (sorted newest first)
   const { data: settingsData, isLoading: settingsLoading } = useQuery({
     queryKey: ['settings'],
-    queryFn: () => base44.entities.AppSettings.list(),
+    queryFn: () => base44.entities.AppSettings.list('-effective_from'),
   });
-  
-  const settings = settingsData?.[0] || {
-    base_salary: 10000,
-    transport_allowance: 250,
-    overtime_rate: 65
-  };
+
+  // Find the most recent settings snapshot that is <= selected month
+  const settings = useMemo(() => {
+    if (!settingsData?.length) return { base_salary: 10000, transport_allowance: 250, overtime_rate: 65 };
+    const selectedYM = format(selectedMonth, 'yyyy-MM');
+    const match = settingsData.find(s => !s.effective_from || s.effective_from <= selectedYM);
+    return match || settingsData[settingsData.length - 1] || { base_salary: 10000, transport_allowance: 250, overtime_rate: 65 };
+  }, [settingsData, selectedMonth]);
 
   // Fetch all overtime sessions
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
