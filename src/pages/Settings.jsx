@@ -28,35 +28,40 @@ export default function Settings() {
 
   const { data: settingsData, isLoading } = useQuery({
     queryKey: ['settings'],
-    queryFn: () => base44.entities.AppSettings.list(),
+    queryFn: () => base44.entities.AppSettings.list('-effective_from'),
   });
 
-  const existingSettings = settingsData?.[0];
+  // Most recent settings = current defaults shown in the form
+  const latestSettings = settingsData?.[0];
 
   useEffect(() => {
-    if (existingSettings) {
-      setBaseSalary(existingSettings.base_salary || 10000);
-      setTransport(existingSettings.transport_allowance || 250);
-      setOvertimeRate(existingSettings.overtime_rate || 65);
+    if (latestSettings) {
+      setBaseSalary(latestSettings.base_salary || 10000);
+      setTransport(latestSettings.transport_allowance || 250);
+      setOvertimeRate(latestSettings.overtime_rate || 65);
     }
-  }, [existingSettings]);
+  }, [latestSettings]);
+
+  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      if (existingSettings) {
-        return base44.entities.AppSettings.update(existingSettings.id, data);
-      } else {
-        return base44.entities.AppSettings.create(data);
+      // Check if a record for this month already exists — update it, otherwise create new
+      const thisMonthRecord = settingsData?.find(s => s.effective_from === currentMonth);
+      if (thisMonthRecord) {
+        return base44.entities.AppSettings.update(thisMonthRecord.id, data);
       }
+      return base44.entities.AppSettings.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
-      toast.success('Settings saved successfully!');
+      toast.success('Settings saved! Future months will use these rates.');
     },
   });
 
   const handleSave = () => {
     saveMutation.mutate({
+      effective_from: currentMonth,
       base_salary: Number(baseSalary),
       transport_allowance: Number(transport),
       overtime_rate: Number(overtimeRate)
