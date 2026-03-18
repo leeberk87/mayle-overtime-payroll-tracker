@@ -15,6 +15,9 @@ export default function Settings() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [baseSalary, setBaseSalary] = useState(10000);
+  const [transport, setTransport] = useState(250);
+  const [overtimeRate, setOvertimeRate] = useState(65);
 
   useEffect(() => {
     base44.auth.me()
@@ -23,28 +26,12 @@ export default function Settings() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Skeleton className="h-32 w-32 rounded-xl" />
-      </div>
-    );
-  }
-
-  if (user?.role !== 'admin') {
-    return <Navigate to={createPageUrl('Home')} replace />;
-  }
-  
   const { data: settingsData, isLoading } = useQuery({
     queryKey: ['settings'],
     queryFn: () => base44.entities.AppSettings.list(),
   });
 
   const existingSettings = settingsData?.[0];
-  
-  const [baseSalary, setBaseSalary] = useState(10000);
-  const [transport, setTransport] = useState(250);
-  const [overtimeRate, setOvertimeRate] = useState(65);
 
   useEffect(() => {
     if (existingSettings) {
