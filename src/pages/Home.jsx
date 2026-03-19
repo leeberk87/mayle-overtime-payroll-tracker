@@ -63,12 +63,19 @@ export default function Home() {
     });
   }, [sessions, selectedMonth, isAdmin, currentUser]);
 
-  // Calculate totals
+  // Calculate totals (approved only)
   const { totalOtPay, totalOtHours } = useMemo(() => {
-    const pay = filteredSessions.reduce((sum, s) => sum + (s.ot_pay || 0), 0);
-    const minutes = filteredSessions.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
+    const approved = filteredSessions.filter(s => s.status !== 'declined');
+    const pay = approved.reduce((sum, s) => sum + (s.ot_pay || 0), 0);
+    const minutes = approved.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
     return { totalOtPay: pay, totalOtHours: minutes / 60 };
   }, [filteredSessions]);
+
+  const pendingCount = useMemo(() => {
+    const ps = filteredSessions.filter(s => s.status === 'pending').length;
+    const pe = filteredExpenses.filter(e => e.status === 'pending').length;
+    return ps + pe;
+  }, [filteredSessions, filteredExpenses]);
 
   // Create/Update mutation
   const saveMutation = useMutation({
@@ -179,6 +186,24 @@ export default function Home() {
       </div>
 
       <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+        {/* Admin pending banner */}
+        {isAdmin && pendingCount > 0 && (
+          <Link to={createPageUrl('ApprovalDashboard')}>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <ClipboardCheck className="w-5 h-5 text-amber-600" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-900">
+                    {pendingCount} pending {pendingCount === 1 ? 'entry' : 'entries'}
+                  </p>
+                  <p className="text-xs text-amber-700">Tap to review and approve</p>
+                </div>
+              </div>
+              <span className="text-amber-600 text-xs font-medium">Review →</span>
+            </div>
+          </Link>
+        )}
+
         {/* Month Selector */}
         <MonthSelector 
           currentMonth={selectedMonth} 
