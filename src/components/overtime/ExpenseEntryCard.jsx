@@ -19,9 +19,15 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit }) {
         </div>
         <div>
           <p className="font-semibold text-slate-800 leading-tight">{entry.description}</p>
-          <p className="text-xs text-slate-400 mt-0.5">
-            {format(parsedDate, 'EEE, MMM d')}
-          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-slate-400">{format(parsedDate, 'EEE, MMM d')}</p>
+            {entry.status === 'pending' && (
+              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Pending</span>
+            )}
+            {entry.status === 'declined' && (
+              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Declined</span>
+            )}
+          </div>
         </div>
       </div>
 

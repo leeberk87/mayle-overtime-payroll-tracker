@@ -26,7 +26,7 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit }) {
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-sm font-medium text-slate-900">
                 {(() => {
                   const [y, m, d] = (entry.date?.split('T')[0] || entry.date || '').split('-').map(Number);
@@ -36,6 +36,12 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit }) {
               <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
                 {entry.start_time} – {entry.end_time}
               </span>
+              {entry.status === 'pending' && (
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Pending</span>
+              )}
+              {entry.status === 'declined' && (
+                <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Declined</span>
+              )}
             </div>
             
             <div className="flex items-center gap-4">
