@@ -3,10 +3,10 @@ import { Clock, Receipt } from 'lucide-react';
 
 export default function AddEntryMenu({ onSelectOvertme, onSelectExpense, onClose }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div
-        className="relative bg-white rounded-t-2xl w-full max-w-lg p-6 pb-10 space-y-3 shadow-xl"
+        className="relative bg-white rounded-2xl w-full max-w-lg mx-4 p-6 pb-8 space-y-3 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">What would you like to add?</p>
