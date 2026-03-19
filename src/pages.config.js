@@ -49,12 +49,14 @@
  */
 import Home from './pages/Home';
 import Settings from './pages/Settings';
+import ApprovalDashboard from './pages/ApprovalDashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Home": Home,
     "Settings": Settings,
+    "ApprovalDashboard": ApprovalDashboard,
 }
 
 export const pagesConfig = {
