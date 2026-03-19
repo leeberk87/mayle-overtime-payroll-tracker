@@ -14,6 +14,11 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
   const [date, setDate] = useState(new Date());
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (editingEntry) {
@@ -29,14 +34,27 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
   }, [editingEntry, open]);
 
   const handleSubmit = () => {
+    const isAdmin = currentUser?.role === 'admin';
     const payload = {
       date: format(date, 'yyyy-MM-dd'),
       description,
       amount: Number(amount),
+      status: isAdmin ? 'approved' : 'pending',
+      submitted_by: currentUser?.email || '',
     };
     if (editingEntry) {
       onSubmit({ id: editingEntry.id, data: payload });
     } else {
+      if (!isAdmin) {
+        base44.functions.invoke('notifyOnSubmission', {
+          entity_type: 'Expense',
+          entity_id: 'pending',
+          submitter_email: currentUser?.email,
+          submitter_name: currentUser?.full_name || currentUser?.email,
+          entry_date: payload.date,
+          entry_type: 'expense',
+        }).catch(() => {});
+      }
       onSubmit(payload);
     }
   };

@@ -23,6 +23,11 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
   const [endTime, setEndTime] = useState('');
   const [notes, setNotes] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => {});
+  }, []);
 
   // Populate form when editing
   React.useEffect(() => {
@@ -66,18 +71,31 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
   const handleSubmit = () => {
     const { duration, pay } = calculateDurationAndPay();
     
+    const isAdmin = currentUser?.role === 'admin';
     const data = {
       date: format(date, 'yyyy-MM-dd'),
       start_time: startTime,
       end_time: endTime,
       duration_minutes: duration,
       ot_pay: pay,
-      notes: notes.trim() || null
+      notes: notes.trim() || null,
+      status: isAdmin ? 'approved' : 'pending',
+      submitted_by: currentUser?.email || '',
     };
     
     if (editingEntry) {
       onSubmit({ id: editingEntry.id, data });
     } else {
+      if (!isAdmin) {
+        base44.functions.invoke('notifyOnSubmission', {
+          entity_type: 'OvertimeSession',
+          entity_id: 'pending',
+          submitter_email: currentUser?.email,
+          submitter_name: currentUser?.full_name || currentUser?.email,
+          entry_date: data.date,
+          entry_type: 'overtime',
+        }).catch(() => {});
+      }
       onSubmit(data);
     }
   };
