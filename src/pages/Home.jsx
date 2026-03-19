@@ -128,8 +128,8 @@ export default function Home() {
   [filteredExpenses]);
 
   const pendingCount = useMemo(() => {
-    const ps = filteredSessions.filter(s => s.status === 'pending').length;
-    const pe = filteredExpenses.filter(e => e.status === 'pending').length;
+    const ps = filteredSessions.filter(s => s.status === 'pending' || s.deletion_requested).length;
+    const pe = filteredExpenses.filter(e => e.status === 'pending' || e.deletion_requested).length;
     return ps + pe;
   }, [filteredSessions, filteredExpenses]);
 
