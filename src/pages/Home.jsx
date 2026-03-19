@@ -308,8 +308,10 @@ export default function Home() {
                 <ExpenseEntryCard
                   key={expense.id}
                   entry={expense}
+                  isAdmin={isAdmin}
                   onDelete={deleteExpenseMutation.mutate}
                   onEdit={handleEditExpense}
+                  onRequestDeletion={(id, reason) => requestExpenseDeletionMutation.mutate({ id, reason })}
                 />
               ))}
             </div>
