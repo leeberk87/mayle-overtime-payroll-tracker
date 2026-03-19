@@ -118,6 +118,12 @@ export default function Home() {
     filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0),
   [filteredExpenses]);
 
+  const pendingCount = useMemo(() => {
+    const ps = filteredSessions.filter(s => s.status === 'pending').length;
+    const pe = filteredExpenses.filter(e => e.status === 'pending').length;
+    return ps + pe;
+  }, [filteredSessions, filteredExpenses]);
+
   // Save expense mutation
   const saveExpenseMutation = useMutation({
     mutationFn: (payload) => {
