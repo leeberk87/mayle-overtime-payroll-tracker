@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Settings } from 'lucide-react';
+import { Home, Settings, ClipboardCheck } from 'lucide-react';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -15,6 +16,11 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Top notification bar */}
+      <div className="fixed top-0 right-0 z-20 p-2">
+        {user && <NotificationBell userEmail={user.email} />}
+      </div>
+
       {children}
       
       {/* Bottom Navigation */}
@@ -33,6 +39,20 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-xs mt-1 font-medium">Home</span>
             </Link>
             
+            {isAdmin && (
+              <Link 
+                to={createPageUrl('ApprovalDashboard')}
+                className={`flex flex-col items-center py-2 px-6 rounded-xl transition-colors ${
+                  currentPageName === 'ApprovalDashboard' 
+                    ? 'text-slate-900 bg-slate-100' 
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                <ClipboardCheck className="w-5 h-5" />
+                <span className="text-xs mt-1 font-medium">Approvals</span>
+              </Link>
+            )}
+
             {isAdmin && (
               <Link 
                 to={createPageUrl('Settings')}
