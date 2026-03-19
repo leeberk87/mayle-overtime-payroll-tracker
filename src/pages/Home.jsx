@@ -71,12 +71,6 @@ export default function Home() {
     return { totalOtPay: pay, totalOtHours: minutes / 60 };
   }, [filteredSessions]);
 
-  const pendingCount = useMemo(() => {
-    const ps = filteredSessions.filter(s => s.status === 'pending').length;
-    const pe = filteredExpenses.filter(e => e.status === 'pending').length;
-    return ps + pe;
-  }, [filteredSessions, filteredExpenses]);
-
   // Create/Update mutation
   const saveMutation = useMutation({
     mutationFn: (payload) => {
