@@ -269,11 +269,13 @@ export default function Home() {
           ) : (
             <div className="space-y-3">
               {filteredSessions.map(entry => (
-                <OvertimeEntryCard 
-                  key={entry.id} 
+                <OvertimeEntryCard
+                  key={entry.id}
                   entry={entry}
+                  isAdmin={isAdmin}
                   onDelete={deleteMutation.mutate}
                   onEdit={handleEdit}
+                  onRequestDeletion={(id, reason) => requestOtDeletionMutation.mutate({ id, reason })}
                 />
               ))}
             </div>
