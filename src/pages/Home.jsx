@@ -96,6 +96,15 @@ export default function Home() {
     },
   });
 
+  // Request deletion mutation
+  const requestOtDeletionMutation = useMutation({
+    mutationFn: ({ id, reason }) => base44.entities.OvertimeSession.update(id, { deletion_requested: true, deletion_reason: reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
+      toast.success('Deletion request submitted');
+    },
+  });
+
   // Fetch expenses
   const { data: expenses = [], isLoading: expensesLoading } = useQuery({
     queryKey: ['expenses'],
