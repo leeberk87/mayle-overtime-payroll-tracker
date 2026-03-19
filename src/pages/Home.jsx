@@ -1,11 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Clock, FileText, Receipt } from "lucide-react";
+import { Plus, Clock, FileText, Receipt, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 import SalarySummaryCard from '@/components/overtime/SalarySummaryCard';
 import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
@@ -16,6 +18,10 @@ import ExpenseForm from '@/components/overtime/ExpenseForm';
 import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
 
 export default function Home() {
+  const [currentUser, setCurrentUser] = useState(null);
+  useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
+
+  const isAdmin = currentUser?.role === 'admin';
   const [menuOpen, setMenuOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
@@ -44,16 +50,18 @@ export default function Home() {
     queryFn: () => base44.entities.OvertimeSession.list('-date'),
   });
 
-  // Filter sessions by selected month
+  // Filter sessions by selected month (and by user if not admin)
   const filteredSessions = useMemo(() => {
     const monthStart = startOfMonth(selectedMonth);
     const monthEnd = endOfMonth(selectedMonth);
     
     return sessions.filter(session => {
       const sessionDate = new Date(session.date);
-      return isWithinInterval(sessionDate, { start: monthStart, end: monthEnd });
+      const inMonth = isWithinInterval(sessionDate, { start: monthStart, end: monthEnd });
+      const ownedByUser = isAdmin || !currentUser || session.submitted_by === currentUser.email;
+      return inMonth && ownedByUser;
     });
-  }, [sessions, selectedMonth]);
+  }, [sessions, selectedMonth, isAdmin, currentUser]);
 
   // Calculate totals
   const { totalOtPay, totalOtHours } = useMemo(() => {
@@ -93,15 +101,17 @@ export default function Home() {
     queryFn: () => base44.entities.Expense.list('-date'),
   });
 
-  // Filter expenses by month
+  // Filter expenses by month (and by user if not admin)
   const filteredExpenses = useMemo(() => {
     const monthStart = startOfMonth(selectedMonth);
     const monthEnd = endOfMonth(selectedMonth);
     return expenses.filter(e => {
       const d = new Date(e.date);
-      return isWithinInterval(d, { start: monthStart, end: monthEnd });
+      const inMonth = isWithinInterval(d, { start: monthStart, end: monthEnd });
+      const ownedByUser = isAdmin || !currentUser || e.submitted_by === currentUser.email;
+      return inMonth && ownedByUser;
     });
-  }, [expenses, selectedMonth]);
+  }, [expenses, selectedMonth, isAdmin, currentUser]);
 
   const totalExpenses = useMemo(() =>
     filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0),
