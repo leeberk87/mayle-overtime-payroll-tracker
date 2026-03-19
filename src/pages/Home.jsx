@@ -65,7 +65,7 @@ export default function Home() {
 
   // Calculate totals (approved only)
   const { totalOtPay, totalOtHours } = useMemo(() => {
-    const approved = filteredSessions.filter(s => s.status !== 'declined');
+    const approved = filteredSessions.filter(s => s.status === 'approved');
     const pay = approved.reduce((sum, s) => sum + (s.ot_pay || 0), 0);
     const minutes = approved.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
     return { totalOtPay: pay, totalOtHours: minutes / 60 };
