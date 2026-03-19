@@ -21,7 +21,7 @@ const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
   React.useEffect(() => {
-    if (!isLoadingAuth && !isLoadingPublicSettings && authError?.type === 'auth_required') {
+    if (!isLoadingAuth && !isLoadingPublicSettings && authError?.type === 'auth_required' && window.location.pathname !== '/login') {
       navigateToLogin();
     }
   }, [isLoadingAuth, isLoadingPublicSettings, authError]);
