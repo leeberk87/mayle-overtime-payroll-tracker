@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Save, Wallet, Car, Clock, Info } from "lucide-react";
+import { ArrowLeft, Save, Wallet, Car, Clock, Info, Bell } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -18,10 +19,16 @@ export default function Settings() {
   const [baseSalary, setBaseSalary] = useState(10000);
   const [transport, setTransport] = useState(250);
   const [overtimeRate, setOvertimeRate] = useState(65);
+  const [notifEmail, setNotifEmail] = useState(true);
+  const [notifInApp, setNotifInApp] = useState(true);
 
   useEffect(() => {
     base44.auth.me()
-      .then(setUser)
+      .then(u => {
+        setUser(u);
+        setNotifEmail(u?.notification_email !== false);
+        setNotifInApp(u?.notification_in_app !== false);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -201,6 +208,51 @@ export default function Settings() {
                     className="pl-8 text-lg font-semibold"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">/hr</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Notification Preferences */}
+            <Card className="border-slate-100 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-slate-100 rounded-lg">
+                    <Bell className="w-4 h-4 text-slate-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Notifications</CardTitle>
+                    <CardDescription className="text-xs">How you receive alerts</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">Email notifications</p>
+                    <p className="text-xs text-slate-500">Get emailed on new submissions & reviews</p>
+                  </div>
+                  <Switch
+                    checked={notifEmail}
+                    onCheckedChange={async (v) => {
+                      setNotifEmail(v);
+                      await base44.auth.updateMe({ notification_email: v });
+                      toast.success('Preference saved');
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">In-app notifications</p>
+                    <p className="text-xs text-slate-500">Bell icon alerts inside the app</p>
+                  </div>
+                  <Switch
+                    checked={notifInApp}
+                    onCheckedChange={async (v) => {
+                      setNotifInApp(v);
+                      await base44.auth.updateMe({ notification_in_app: v });
+                      toast.success('Preference saved');
+                    }}
+                  />
                 </div>
               </CardContent>
             </Card>
