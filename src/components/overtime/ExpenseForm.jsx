@@ -59,7 +59,7 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
     }
   };
 
-  const isValid = description.trim() && Number(amount) > 0;
+  const isValid = description.trim() && Number(amount) > 0 && !!currentUser;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

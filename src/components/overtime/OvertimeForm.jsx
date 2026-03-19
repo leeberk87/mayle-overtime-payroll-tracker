@@ -100,7 +100,7 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
     }
   };
 
-  const isValid = startTime && endTime && duration > 0;
+  const isValid = startTime && endTime && duration > 0 && !!currentUser;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
