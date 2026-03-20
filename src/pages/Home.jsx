@@ -192,13 +192,7 @@ export default function Home() {
               <h1 className="text-xl font-bold text-slate-900">Mayle</h1>
               <p className="text-xs text-slate-500">Overtime & Salary Tracker</p>
             </div>
-            <Button 
-              onClick={() => setMenuOpen(true)}
-              className="bg-slate-800 hover:bg-slate-900 shadow-lg"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Entry
-            </Button>
+
           </div>
         </div>
       </div>
