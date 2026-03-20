@@ -14,8 +14,9 @@ import {
   DialogTitle,
   DialogFooter 
 } from "@/components/ui/dialog";
-import { CalendarIcon, Clock, Save, X } from "lucide-react";
+import { CalendarIcon, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import TimePicker from './TimePicker';
 
 export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, isLoading, editingEntry }) {
   const [date, setDate] = useState(new Date());
