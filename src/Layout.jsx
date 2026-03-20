@@ -16,6 +16,11 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Notification Bell - fixed top right */}
+      <div className="fixed top-2 right-2 z-20">
+        {user && <NotificationBell userEmail={user.email} />}
+      </div>
+
       {children}
       
       {/* Bottom Navigation */}
@@ -70,11 +75,7 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-[10px] mt-0.5 font-medium">Add Entry</span>
             </button>
 
-            {user && (
-              <div className="flex flex-col items-center py-1.5 px-2 rounded-lg">
-                <NotificationBell userEmail={user.email} />
-              </div>
-            )}
+
           </div>
         </div>
       </nav>
