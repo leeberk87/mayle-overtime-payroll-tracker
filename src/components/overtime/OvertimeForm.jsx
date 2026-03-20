@@ -150,7 +150,9 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
-                  type="time"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="09:00"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                   className="pl-10"
@@ -162,7 +164,9 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
-                  type="time"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="11:00"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
                   className="pl-10"
