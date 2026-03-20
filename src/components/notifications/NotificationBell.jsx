@@ -41,15 +41,14 @@ export default function NotificationBell({ userEmail }) {
   return (
     <Popover open={open} onOpenChange={handleOpen}>
       <PopoverTrigger asChild>
-        <button className="flex flex-col items-center relative text-slate-400 hover:text-slate-600 transition-colors">
-          <Bell className="w-4 h-4" />
-          <span className="text-[10px] mt-0.5 font-medium">Alerts</span>
+        <Button variant="ghost" size="icon" className="relative text-slate-600">
+          <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 right-0 bg-red-500 text-white text-[9px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold">
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="p-3 border-b border-slate-100">
