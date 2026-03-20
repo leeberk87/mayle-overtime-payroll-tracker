@@ -319,6 +319,14 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Add Entry FAB - fixed bottom right above nav */}
+      <button
+        onClick={() => setMenuOpen(true)}
+        className="fixed bottom-16 right-4 z-20 w-12 h-12 rounded-full bg-slate-800 hover:bg-slate-900 text-white shadow-lg flex items-center justify-center"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
+
       {/* Add Entry Menu - outside main wrapper, covers full screen */}
       {menuOpen && (
         <AddEntryMenu
