@@ -34,14 +34,6 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-[10px] mt-0.5 font-medium">Home</span>
             </Link>
 
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('open-add-entry-menu'))}
-              className="flex flex-col items-center py-1.5 px-4 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="text-[10px] mt-0.5 font-medium">Add Entry</span>
-            </button>
-            
             {isAdmin && (
               <Link 
                 to={createPageUrl('ApprovalDashboard')}
@@ -69,6 +61,14 @@ export default function Layout({ children, currentPageName }) {
                 <span className="text-[10px] mt-0.5 font-medium">Settings</span>
               </Link>
             )}
+
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-add-entry-menu'))}
+              className="flex flex-col items-center py-1.5 px-4 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-[10px] mt-0.5 font-medium">Add Entry</span>
+            </button>
 
             {user && (
               <div className="flex flex-col items-center py-1.5 px-2 rounded-lg">
