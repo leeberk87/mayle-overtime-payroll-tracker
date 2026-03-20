@@ -16,11 +16,6 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Notification Bell - fixed top right */}
-      <div className="fixed top-2 right-2 z-20">
-        {user && <NotificationBell userEmail={user.email} />}
-      </div>
-
       {children}
       
       {/* Bottom Navigation */}
@@ -38,6 +33,14 @@ export default function Layout({ children, currentPageName }) {
               <Home className="w-4 h-4" />
               <span className="text-[10px] mt-0.5 font-medium">Home</span>
             </Link>
+
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-add-entry-menu'))}
+              className="flex flex-col items-center py-1.5 px-4 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-[10px] mt-0.5 font-medium">Add Entry</span>
+            </button>
             
             {isAdmin && (
               <Link 
@@ -67,7 +70,11 @@ export default function Layout({ children, currentPageName }) {
               </Link>
             )}
 
-
+            {user && (
+              <div className="flex flex-col items-center py-1.5 px-2 rounded-lg">
+                <NotificationBell userEmail={user.email} />
+              </div>
+            )}
           </div>
         </div>
       </nav>
