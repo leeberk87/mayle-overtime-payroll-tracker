@@ -58,12 +58,10 @@ export default function Home() {
 
   // Filter sessions by selected month (and by user if not admin)
   const filteredSessions = useMemo(() => {
-    const monthStart = startOfMonth(selectedMonth);
-    const monthEnd = endOfMonth(selectedMonth);
-    
+    const selectedYM = format(selectedMonth, 'yyyy-MM');
     return sessions.filter(session => {
-      const sessionDate = new Date(session.date);
-      const inMonth = isWithinInterval(sessionDate, { start: monthStart, end: monthEnd });
+      const sessionYM = (session.date || '').slice(0, 7);
+      const inMonth = sessionYM === selectedYM;
       const ownedByUser = isAdmin || !currentUser || session.submitted_by === currentUser.email;
       return inMonth && ownedByUser;
     });
@@ -119,11 +117,10 @@ export default function Home() {
 
   // Filter expenses by month (and by user if not admin)
   const filteredExpenses = useMemo(() => {
-    const monthStart = startOfMonth(selectedMonth);
-    const monthEnd = endOfMonth(selectedMonth);
+    const selectedYM = format(selectedMonth, 'yyyy-MM');
     return expenses.filter(e => {
-      const d = new Date(e.date);
-      const inMonth = isWithinInterval(d, { start: monthStart, end: monthEnd });
+      const expenseYM = (e.date || '').slice(0, 7);
+      const inMonth = expenseYM === selectedYM;
       const ownedByUser = isAdmin || !currentUser || e.submitted_by === currentUser.email;
       return inMonth && ownedByUser;
     });
