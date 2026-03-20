@@ -100,7 +100,8 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
     }
   };
 
-  const isValid = startTime && endTime && duration > 0 && !!currentUser;
+  const timeRegex = /^([01]?\d|2[0-3]):([0-5]\d)$/;
+  const isValid = timeRegex.test(startTime) && timeRegex.test(endTime) && duration > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
