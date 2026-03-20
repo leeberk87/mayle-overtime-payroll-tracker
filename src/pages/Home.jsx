@@ -21,6 +21,12 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
 
+  useEffect(() => {
+    const handler = () => setMenuOpen(true);
+    window.addEventListener('open-add-entry-menu', handler);
+    return () => window.removeEventListener('open-add-entry-menu', handler);
+  }, []);
+
   const isAdmin = currentUser?.role === 'admin';
   const [menuOpen, setMenuOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
