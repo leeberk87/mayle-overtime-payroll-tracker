@@ -67,11 +67,11 @@ export default function Home() {
     });
   }, [sessions, selectedMonth, isAdmin, currentUser]);
 
-  // Calculate totals (approved only)
+  // Calculate totals (approved + pending, exclude declined)
   const { totalOtPay, totalOtHours } = useMemo(() => {
-    const approved = filteredSessions.filter(s => s.status === 'approved');
-    const pay = approved.reduce((sum, s) => sum + (s.ot_pay || 0), 0);
-    const minutes = approved.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
+    const countable = filteredSessions.filter(s => s.status !== 'declined');
+    const pay = countable.reduce((sum, s) => sum + (s.ot_pay || 0), 0);
+    const minutes = countable.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
     return { totalOtPay: pay, totalOtHours: minutes / 60 };
   }, [filteredSessions]);
 
@@ -127,7 +127,7 @@ export default function Home() {
   }, [expenses, selectedMonth, isAdmin, currentUser]);
 
   const totalExpenses = useMemo(() =>
-    filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0),
+    filteredExpenses.filter(e => e.status !== 'declined').reduce((sum, e) => sum + (e.amount || 0), 0),
   [filteredExpenses]);
 
   const pendingCount = useMemo(() => {
