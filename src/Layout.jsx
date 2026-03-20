@@ -62,12 +62,8 @@ export default function Layout({ children, currentPageName }) {
               </Link>
             )}
 
-            {/* Notification Bell - far right */}
-            {user && (
-              <div className="flex flex-col items-center py-1.5 px-4">
-                <NotificationBell userEmail={user.email} />
-              </div>
-            )}
+            {/* Add Entry placeholder slot - far right (rendered by Home page) */}
+            <div className="w-16" />
           </div>
         </div>
       </nav>
