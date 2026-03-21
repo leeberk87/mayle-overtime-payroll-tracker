@@ -20,7 +20,8 @@ export default function SalarySummaryCard({ settings, totalOtPay, totalOtHours, 
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+        {/* On mobile: 2×2 grid. On desktop: single row of 4. */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
             <div className="flex items-center gap-1.5 text-slate-300 text-xs mb-1">
               <Wallet className="w-3.5 h-3.5 flex-shrink-0" />
@@ -35,9 +36,6 @@ export default function SalarySummaryCard({ settings, totalOtPay, totalOtHours, 
             </div>
             <p className="text-xl font-semibold">₪{transport.toLocaleString()}</p>
           </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3">
           <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
             <div className="flex items-center gap-1.5 text-slate-300 text-xs mb-1">
               <Clock className="w-3.5 h-3.5 flex-shrink-0" />

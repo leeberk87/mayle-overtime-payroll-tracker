@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,8 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
       date: format(date, 'yyyy-MM-dd'),
       description,
       amount: Number(amount),
-      status: isAdmin ? 'approved' : 'pending',
+      // When editing, preserve the existing status so an approved entry stays approved
+      status: editingEntry ? editingEntry.status : (isAdmin ? 'approved' : 'pending'),
       submitted_by: currentUser?.email || '',
     };
     if (editingEntry) {
@@ -80,7 +81,16 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(d) => d && setDate(d)}
+                  disabled={(day) =>
+                    day > new Date() ||
+                    day < startOfMonth(subMonths(new Date(), 2))
+                  }
+                  initialFocus
+                />
               </PopoverContent>
             </Popover>
           </div>

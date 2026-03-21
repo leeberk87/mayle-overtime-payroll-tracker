@@ -64,14 +64,34 @@ export default function Settings() {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       toast.success('Settings saved! Future months will use these rates.');
     },
+    onError: () => {
+      toast.error('Failed to save settings. Please try again.');
+    },
   });
 
   const handleSave = () => {
+    const salary = Number(baseSalary);
+    const trans = Number(transport);
+    const rate = Number(overtimeRate);
+
+    if (!salary || salary < 1000 || salary > 100000) {
+      toast.error('Base salary must be between ₪1,000 and ₪100,000');
+      return;
+    }
+    if (trans < 0 || trans > 5000) {
+      toast.error('Transport allowance must be between ₪0 and ₪5,000');
+      return;
+    }
+    if (!rate || rate < 1 || rate > 500) {
+      toast.error('Overtime rate must be between ₪1 and ₪500 per hour');
+      return;
+    }
+
     saveMutation.mutate({
       effective_from: currentMonth,
-      base_salary: Number(baseSalary),
-      transport_allowance: Number(transport),
-      overtime_rate: Number(overtimeRate)
+      base_salary: salary,
+      transport_allowance: trans,
+      overtime_rate: rate,
     });
   };
 
@@ -91,7 +111,7 @@ export default function Settings() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-4">
+        <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <Link to={createPageUrl('Home')}>
               <Button variant="ghost" size="icon" className="text-slate-600">
@@ -106,7 +126,7 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Info Card */}
         <Card className="bg-blue-50 border-blue-100">
           <CardContent className="p-4">
