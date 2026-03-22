@@ -294,7 +294,7 @@ export default function Home() {
             </h2>
             <span className="text-xs text-slate-500">
               {filteredExpenses.length} {filteredExpenses.length === 1 ? 'entry' : 'entries'}
-              {filteredExpenses.length > 0 && ` · ₪${totalExpenses.toFixed(2)}`}
+              {filteredExpenses.length > 0 && ` · ₪${Math.round(totalExpenses)}`}
             </span>
           </div>
 
