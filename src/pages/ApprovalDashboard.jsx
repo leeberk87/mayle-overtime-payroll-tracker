@@ -170,6 +170,7 @@ export default function ApprovalDashboard() {
       queryClient.invalidateQueries({ queryKey: ['pending-expenses'] });
       toast.success('Entry approved!');
     },
+    onError: () => toast.error('Failed to approve entry. Please try again.'),
   });
 
   const declineMutation = useMutation({
@@ -188,6 +189,7 @@ export default function ApprovalDashboard() {
       queryClient.invalidateQueries({ queryKey: ['pending-expenses'] });
       toast.success('Entry declined.');
     },
+    onError: () => toast.error('Failed to decline entry. Please try again.'),
   });
 
   const confirmDeleteMutation = useMutation({
@@ -205,6 +207,7 @@ export default function ApprovalDashboard() {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       toast.success('Entry deleted.');
     },
+    onError: () => toast.error('Failed to delete entry. Please try again.'),
   });
 
   const rejectDeletionMutation = useMutation({
@@ -220,6 +223,7 @@ export default function ApprovalDashboard() {
       queryClient.invalidateQueries({ queryKey: ['deletion-expenses'] });
       toast.success('Deletion request rejected — entry kept.');
     },
+    onError: () => toast.error('Something went wrong. Please try again.'),
   });
 
   const isProcessing = approveMutation.isPending || declineMutation.isPending || confirmDeleteMutation.isPending || rejectDeletionMutation.isPending;
@@ -238,7 +242,7 @@ export default function ApprovalDashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-4">
+        <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <Link to={createPageUrl('Home')}>
               <Button variant="ghost" size="icon" className="text-slate-600">
@@ -253,7 +257,7 @@ export default function ApprovalDashboard() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-8">
+      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-6 space-y-8">
         {/* Pending Overtime */}
         <div>
           <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-3">
@@ -264,7 +268,7 @@ export default function ApprovalDashboard() {
           ) : pendingSessions.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-100 p-6 text-center text-slate-400 text-sm">No pending overtime entries</div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {pendingSessions.map(item => (
                 <ReviewCard key={item.id} item={item} entityType="OvertimeSession" isProcessing={isProcessing}
                   onApprove={(id, submitted_by, entry_date) => approveMutation.mutate({ entityType: 'OvertimeSession', id, submitted_by, entry_date })}
@@ -285,7 +289,7 @@ export default function ApprovalDashboard() {
           ) : pendingExpenses.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-100 p-6 text-center text-slate-400 text-sm">No pending expense entries</div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {pendingExpenses.map(item => (
                 <ReviewCard key={item.id} item={item} entityType="Expense" isProcessing={isProcessing}
                   onApprove={(id, submitted_by, entry_date) => approveMutation.mutate({ entityType: 'Expense', id, submitted_by, entry_date })}
@@ -302,7 +306,7 @@ export default function ApprovalDashboard() {
             <h2 className="text-sm font-semibold text-orange-700 flex items-center gap-2 mb-3">
               <Trash2 className="w-4 h-4" /> Deletion Requests ({totalDeletionRequests})
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {deletionSessionRequests.map(item => (
                 <DeletionRequestCard key={item.id} item={item} entityType="OvertimeSession" isProcessing={isProcessing}
                   onConfirmDelete={(id) => confirmDeleteMutation.mutate({ entityType: 'OvertimeSession', id })}

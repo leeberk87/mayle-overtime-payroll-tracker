@@ -89,6 +89,7 @@ export default function Home() {
       setEditingEntry(null);
       toast.success(variables.id ? 'Entry updated!' : 'Overtime entry saved!');
     },
+    onError: () => toast.error('Failed to save entry. Please try again.'),
   });
 
   // Delete mutation
@@ -98,6 +99,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
       toast.success('Entry deleted');
     },
+    onError: () => toast.error('Failed to delete entry. Please try again.'),
   });
 
   // Request deletion mutation
@@ -107,6 +109,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
       toast.success('Deletion request submitted');
     },
+    onError: () => toast.error('Failed to submit deletion request. Please try again.'),
   });
 
   // Fetch expenses
@@ -148,6 +151,7 @@ export default function Home() {
       setEditingExpense(null);
       toast.success(variables.id ? 'Expense updated!' : 'Expense saved!');
     },
+    onError: () => toast.error('Failed to save expense. Please try again.'),
   });
 
   // Delete expense mutation
@@ -157,6 +161,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       toast.success('Expense deleted');
     },
+    onError: () => toast.error('Failed to delete expense. Please try again.'),
   });
 
   // Request expense deletion mutation
@@ -166,6 +171,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       toast.success('Deletion request submitted');
     },
+    onError: () => toast.error('Failed to submit deletion request. Please try again.'),
   });
 
   const handleEdit = (entry) => {
@@ -189,7 +195,7 @@ export default function Home() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-4">
+        <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-slate-900">Mayle</h1>
@@ -200,7 +206,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-6 space-y-6">
         {/* Admin pending banner */}
         {isAdmin && pendingCount > 0 && (
           <Link to={createPageUrl('ApprovalDashboard')}>
@@ -264,7 +270,7 @@ export default function Home() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {filteredSessions.map(entry => (
                 <OvertimeEntryCard
                   key={entry.id}
@@ -300,7 +306,7 @@ export default function Home() {
               <p className="text-slate-500 text-sm">No expenses this month</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {filteredExpenses.map(expense => (
                 <ExpenseEntryCard
                   key={expense.id}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,9 +54,12 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
     
     let totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
     if (totalMinutes < 0) totalMinutes += 24 * 60; // Handle overnight
-    
-    // Round UP to nearest 10 minutes
-    const roundedMinutes = Math.ceil(totalMinutes / 10) * 10;
+
+    // Cap at 12 hours to prevent accidental all-day entries (e.g. 08:00–07:00 = 23h)
+    if (totalMinutes > 720) return { duration: 0, pay: 0 };
+
+    // Round to nearest 15 minutes (FLSA standard)
+    const roundedMinutes = Math.round(totalMinutes / 15) * 15;
     
     const hourlyRate = settings?.overtime_rate || 65;
     const pay = Math.round((roundedMinutes / 60) * hourlyRate);
@@ -79,10 +82,11 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
       duration_minutes: duration,
       ot_pay: pay,
       notes: notes.trim() || null,
-      status: isAdmin ? 'approved' : 'pending',
+      // When editing, preserve the existing status so an approved entry stays approved
+      status: editingEntry ? editingEntry.status : (isAdmin ? 'approved' : 'pending'),
       submitted_by: currentUser?.email || '',
     };
-    
+
     if (editingEntry) {
       onSubmit({ id: editingEntry.id, data });
     } else {
@@ -101,7 +105,10 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
   };
 
   const timeRegex = /^([01]?\d|2[0-3]):([0-5]\d)$/;
-  const isValid = timeRegex.test(startTime) && timeRegex.test(endTime) && duration > 0;
+  const timesEntered = timeRegex.test(startTime) && timeRegex.test(endTime);
+  // Warn if both times are entered but duration rounds to 0 (under 8 min) or exceeds 12h cap
+  const durationWarning = timesEntered && duration === 0 && startTime !== endTime;
+  const isValid = timesEntered && duration > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -137,6 +144,10 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
                     setDate(d);
                     setCalendarOpen(false);
                   }}
+                  disabled={(day) =>
+                    day > new Date() ||
+                    day < startOfMonth(subMonths(new Date(), 2))
+                  }
                   initialFocus
                 />
               </PopoverContent>
@@ -155,6 +166,13 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
             </div>
           </div>
           
+          {/* Duration warning */}
+          {durationWarning && (
+            <p className="text-xs text-red-500">
+              Duration is under 8 minutes (rounds to zero) or exceeds 12 hours — please check your times.
+            </p>
+          )}
+
           {/* Duration Preview */}
           {duration > 0 && (
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
