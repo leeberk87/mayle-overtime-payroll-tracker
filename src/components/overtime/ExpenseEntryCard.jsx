@@ -43,7 +43,7 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDel
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="font-bold text-amber-700 text-base">₪{entry.amount?.toFixed(2)}</span>
+        <span className="font-bold text-amber-700 text-base">₪{Math.round(entry.amount || 0)}</span>
 
         {/* Edit — only if not deletion_requested */}
         {!entry.deletion_requested && (
