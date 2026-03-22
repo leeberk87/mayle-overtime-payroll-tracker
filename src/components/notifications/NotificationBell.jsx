@@ -50,7 +50,7 @@ export default function NotificationBell({ userEmail }) {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-[calc(100vw-1rem)] sm:w-80 p-0 z-50" align="end" sideOffset={8}>
         <div className="p-3 border-b border-slate-100">
           <h3 className="font-semibold text-slate-900 text-sm">Notifications</h3>
         </div>
