@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Settings, ClipboardCheck, Plus, Users } from 'lucide-react';
+import { Home, Settings, ClipboardCheck, Plus } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 
 export default function Layout({ children, currentPageName }) {
@@ -39,13 +39,6 @@ export default function Layout({ children, currentPageName }) {
           <Link to={createPageUrl('ApprovalDashboard')} className={`${navLinkClass('ApprovalDashboard')} w-12 h-12`}>
             <ClipboardCheck className="w-5 h-5" />
             <span className="text-[9px] mt-0.5 font-medium">Approvals</span>
-          </Link>
-        )}
-
-        {isAdmin && (
-          <Link to={createPageUrl('UserManagement')} className={`${navLinkClass('UserManagement')} w-12 h-12`}>
-            <Users className="w-5 h-5" />
-            <span className="text-[9px] mt-0.5 font-medium">Users</span>
           </Link>
         )}
 
@@ -91,16 +84,6 @@ export default function Layout({ children, currentPageName }) {
               >
                 <ClipboardCheck className="w-4 h-4" />
                 <span className="text-[10px] mt-0.5 font-medium">Approvals</span>
-              </Link>
-            )}
-
-            {isAdmin && (
-              <Link
-                to={createPageUrl('UserManagement')}
-                className={`${navLinkClass('UserManagement')} py-1.5 px-4`}
-              >
-                <Users className="w-4 h-4" />
-                <span className="text-[10px] mt-0.5 font-medium">Users</span>
               </Link>
             )}
 

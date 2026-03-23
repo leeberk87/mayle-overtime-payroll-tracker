@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Save, Wallet, Car, Clock, Info, Bell } from "lucide-react";
+import { ArrowLeft, Save, Wallet, Car, Clock, Info, Bell, Users, ChevronRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
@@ -277,8 +277,26 @@ export default function Settings() {
               </CardContent>
             </Card>
 
+            {/* User Management */}
+            <Link to="/UserManagement">
+              <Card className="border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-slate-100 rounded-lg">
+                      <Users className="w-4 h-4 text-slate-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">User Management</p>
+                      <p className="text-xs text-slate-500">Invite users, manage roles & access</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </CardContent>
+              </Card>
+            </Link>
+
             {/* Save Button */}
-            <Button 
+            <Button
               onClick={handleSave}
               disabled={saveMutation.isPending}
               className="w-full bg-slate-800 hover:bg-slate-900 py-6 text-base shadow-lg"
