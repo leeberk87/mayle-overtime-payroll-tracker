@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, UserPlus, Trash2, Shield, User, ArrowLeft } from 'lucide-react';
+import { Users, UserPlus, Trash2, Shield, User, ArrowLeft, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { format, formatDistanceToNow } from 'date-fns';
 
 export default function UserManagement() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -26,6 +27,17 @@ export default function UserManagement() {
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list(),
   });
+
+  const { data: invitations = [] } = useQuery({
+    queryKey: ['invitations'],
+    queryFn: () => base44.entities.Invitation.list('-sent_at'),
+  });
+
+  const userEmails = new Set(users.map(u => u.email));
+  const enrichedInvitations = invitations.map(inv => ({
+    ...inv,
+    status: inv.status === 'pending' && userEmails.has(inv.email) ? 'accepted' : inv.status,
+  }));
 
   const updateRoleMutation = useMutation({
     mutationFn: ({ id, role }) => base44.entities.User.update(id, { role }),
@@ -50,11 +62,22 @@ export default function UserManagement() {
     setInviting(true);
     try {
       await base44.users.inviteUser(inviteEmail.trim(), inviteRole);
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      await base44.entities.Invitation.create({
+        email: inviteEmail.trim(),
+        role: inviteRole,
+        status: 'pending',
+        sent_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+        invited_by: currentUser?.email,
+      });
       toast.success(`Invitation sent to ${inviteEmail}`);
       setInviteEmail('');
       setInviteRole('user');
       setInviteOpen(false);
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['invitations'] });
     } catch {
       toast.error('Failed to send invitation');
     } finally {
@@ -86,77 +109,125 @@ export default function UserManagement() {
           </div>
           <Button onClick={() => setInviteOpen(true)} className="gap-2">
             <UserPlus className="w-4 h-4" />
-            Invite User
+            Invite
           </Button>
         </div>
       </div>
 
-      <div className="max-w-lg lg:max-w-3xl mx-auto px-4 py-6">
-        {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-16 bg-white rounded-xl border border-slate-100 animate-pulse" />
-            ))}
-          </div>
-        ) : users.length === 0 ? (
-          <div className="bg-white rounded-xl border border-slate-100 p-10 text-center">
-            <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 text-sm">No users yet</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {users.map(user => (
-              <div key={user.id} className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3 shadow-sm">
-                <div className="p-2 bg-slate-100 rounded-full flex-shrink-0">
-                  {user.role === 'admin' ? (
-                    <Shield className="w-4 h-4 text-slate-700" />
-                  ) : (
-                    <User className="w-4 h-4 text-slate-500" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-slate-800 text-sm truncate">{user.full_name || '—'}</p>
-                  <p className="text-xs text-slate-400 truncate">{user.email}</p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <Select
-                    value={user.role || 'user'}
-                    onValueChange={(role) => updateRoleMutation.mutate({ id: user.id, role })}
-                    disabled={user.id === currentUser?.id}
-                  >
-                    <SelectTrigger className="h-8 text-xs w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
+      <div className="max-w-lg lg:max-w-3xl mx-auto px-4 py-6 space-y-8">
 
-                  {user.id !== currentUser?.id && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Remove User?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will permanently remove <strong>{user.full_name || user.email}</strong> from the app.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteUserMutation.mutate(user.id)} className="bg-red-500 hover:bg-red-600">Remove</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
+        {/* Active Users */}
+        <div>
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Active Users</h2>
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-16 bg-white rounded-xl border border-slate-100 animate-pulse" />
+              ))}
+            </div>
+          ) : users.length === 0 ? (
+            <div className="bg-white rounded-xl border border-slate-100 p-10 text-center">
+              <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 text-sm">No users yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {users.map(user => (
+                <div key={user.id} className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3 shadow-sm">
+                  <div className="p-2 bg-slate-100 rounded-full flex-shrink-0">
+                    {user.role === 'admin' ? (
+                      <Shield className="w-4 h-4 text-slate-700" />
+                    ) : (
+                      <User className="w-4 h-4 text-slate-500" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-800 text-sm truncate">{user.full_name || '—'}</p>
+                    <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Select
+                      value={user.role || 'user'}
+                      onValueChange={(role) => updateRoleMutation.mutate({ id: user.id, role })}
+                      disabled={user.id === currentUser?.id}
+                    >
+                      <SelectTrigger className="h-8 text-xs w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">User</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {user.id !== currentUser?.id && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Remove User?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently remove <strong>{user.full_name || user.email}</strong> from the app.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteUserMutation.mutate(user.id)} className="bg-red-500 hover:bg-red-600">Remove</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Invitations */}
+        {enrichedInvitations.length > 0 && (
+          <div>
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Invitations</h2>
+            <div className="space-y-3">
+              {enrichedInvitations.map(inv => {
+                const isPending = inv.status === 'pending';
+                const isAccepted = inv.status === 'accepted';
+                const expiresDate = inv.expires_at ? new Date(inv.expires_at) : null;
+                const sentDate = inv.sent_at ? new Date(inv.sent_at) : null;
+                return (
+                  <div key={inv.id} className={`bg-white rounded-xl border p-4 flex items-center gap-3 shadow-sm ${
+                    isAccepted ? 'border-emerald-100' : inv.status === 'expired' ? 'border-slate-100 opacity-60' : 'border-amber-100'
+                  }`}>
+                    <div className={`p-2 rounded-full flex-shrink-0 ${
+                      isAccepted ? 'bg-emerald-50' : inv.status === 'expired' ? 'bg-slate-100' : 'bg-amber-50'
+                    }`}>
+                      {isAccepted ? <CheckCircle className="w-4 h-4 text-emerald-600" /> :
+                       inv.status === 'expired' ? <XCircle className="w-4 h-4 text-slate-400" /> :
+                       <Clock className="w-4 h-4 text-amber-600" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-slate-800 text-sm truncate">{inv.email}</p>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                          isAccepted ? 'bg-emerald-100 text-emerald-700' :
+                          inv.status === 'expired' ? 'bg-slate-100 text-slate-500' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>{inv.status}</span>
+                        <span className="text-[10px] text-slate-400 capitalize">{inv.role}</span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Sent {sentDate ? formatDistanceToNow(sentDate, { addSuffix: true }) : '—'}
+                        {isPending && expiresDate && ` · expires ${format(expiresDate, 'MMM d')}`}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -190,6 +261,7 @@ export default function UserManagement() {
                 </SelectContent>
               </Select>
             </div>
+            <p className="text-xs text-slate-400">Invitations expire after 7 days.</p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>
