@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, UserPlus, Trash2, Shield, User } from 'lucide-react';
+import { Users, UserPlus, Trash2, Shield, User, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function UserManagement() {
@@ -73,10 +74,15 @@ export default function UserManagement() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg lg:max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">User Management</h1>
-            <p className="text-xs text-slate-500">{users.length} {users.length === 1 ? 'user' : 'users'} total</p>
+        <div className="max-w-lg lg:max-w-3xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link to="/Settings">
+              <Button variant="ghost" size="icon" className="text-slate-600"><ArrowLeft className="w-5 h-5" /></Button>
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">User Management</h1>
+              <p className="text-xs text-slate-500">{users.length} {users.length === 1 ? 'user' : 'users'} total</p>
+            </div>
           </div>
           <Button onClick={() => setInviteOpen(true)} className="gap-2">
             <UserPlus className="w-4 h-4" />
