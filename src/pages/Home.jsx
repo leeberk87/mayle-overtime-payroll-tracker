@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
+import usePullToRefresh from '@/hooks/usePullToRefresh';
 import SalarySummaryCard from '@/components/overtime/SalarySummaryCard';
 import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
 import OvertimeForm from '@/components/overtime/OvertimeForm';
@@ -190,6 +191,10 @@ export default function Home() {
   };
 
   const isLoading = settingsLoading || sessionsLoading || expensesLoading;
+
+  usePullToRefresh(() => {
+    queryClient.invalidateQueries();
+  });
 
   return (
     <div className="min-h-screen bg-slate-50">

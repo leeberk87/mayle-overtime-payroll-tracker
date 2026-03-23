@@ -66,7 +66,7 @@ export default function Layout({ children, currentPageName }) {
       </div>
 
       {/* Bottom Navigation - mobile only */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 safe-area-inset-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 safe-bottom">
         <div className="max-w-lg mx-auto px-3">
           <div className="flex items-center justify-between py-1.5">
             <Link
@@ -109,7 +109,7 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Bottom padding for mobile nav — removed on desktop */}
-      <div className="h-16 lg:h-0" />
+      <div className="h-16 lg:h-0 safe-bottom" />
     </div>
   );
 }

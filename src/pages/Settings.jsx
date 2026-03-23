@@ -4,7 +4,8 @@ import { Link, Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Wallet, Bell, Users, ChevronRight } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Wallet, Bell, Users, ChevronRight, Trash2 } from "lucide-react";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -23,12 +24,17 @@ export default function Settings() {
     { label: 'User Management', description: 'Invite users, manage roles & access', icon: Users, path: '/UserManagement' },
   ];
 
+  const handleDeleteAccount = async () => {
+    await base44.entities.User.delete(user.id);
+    base44.auth.logout('/');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link to="/">
-            <Button variant="ghost" size="icon" className="text-slate-600"><ArrowLeft className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" className="select-none text-slate-600"><ArrowLeft className="w-5 h-5" /></Button>
           </Link>
           <div>
             <h1 className="text-xl font-bold text-slate-900">Settings</h1>
@@ -54,6 +60,39 @@ export default function Settings() {
             </Card>
           </Link>
         ))}
+
+        {/* Account Deletion */}
+        <div className="pt-4">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Danger Zone</p>
+          <Card className="border-red-100 shadow-sm">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-50 rounded-lg"><Trash2 className="w-4 h-4 text-red-500" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-red-700">Delete Account</p>
+                  <p className="text-xs text-slate-500">Permanently remove your account and data</p>
+                </div>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="select-none text-red-500 hover:text-red-700 hover:bg-red-50">Delete</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will <strong>permanently delete</strong> your account and all associated data. This action <strong>cannot be undone</strong>.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="select-none">Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAccount} className="select-none bg-red-500 hover:bg-red-600">Yes, delete my account</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

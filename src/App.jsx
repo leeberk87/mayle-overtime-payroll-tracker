@@ -6,7 +6,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import UserManagement from './pages/UserManagement';
 import SalarySettings from './pages/SalarySettings';
@@ -24,6 +24,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const location = useLocation();
 
   React.useEffect(() => {
     if (!isLoadingAuth && !isLoadingPublicSettings && authError?.type === 'auth_required' && window.location.pathname !== '/login') {
@@ -31,7 +32,6 @@ const AuthenticatedApp = () => {
     }
   }, [isLoadingAuth, isLoadingPublicSettings, authError]);
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -40,7 +40,6 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
@@ -53,11 +52,31 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Render the main app
-  const location = React.useLocation();
   return (
     <AnimatePresence mode="wait">
-    <Routes location={location} key={location.pathname}>
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={
+          <LayoutWrapper currentPageName={mainPageKey}>
+            <PageTransition><MainPage /></PageTransition>
+          </LayoutWrapper>
+        } />
+        {Object.entries(Pages).map(([path, Page]) => (
+          <Route
+            key={path}
+            path={`/${path}`}
+            element={
+              <LayoutWrapper currentPageName={path}>
+                <PageTransition><Page /></PageTransition>
+              </LayoutWrapper>
+            }
+          />
+        ))}
+        <Route path="/UserManagement" element={<LayoutWrapper currentPageName="UserManagement"><PageTransition><UserManagement /></PageTransition></LayoutWrapper>} />
+        <Route path="/SalarySettings" element={<LayoutWrapper currentPageName="SalarySettings"><PageTransition><SalarySettings /></PageTransition></LayoutWrapper>} />
+        <Route path="/NotificationSettings" element={<LayoutWrapper currentPageName="NotificationSettings"><PageTransition><NotificationSettings /></PageTransition></LayoutWrapper>} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </AnimatePresence>
   );
 };
 
