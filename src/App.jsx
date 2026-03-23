@@ -1,5 +1,7 @@
 import React from 'react'
 import { Toaster } from "@/components/ui/toaster"
+import { AnimatePresence } from 'framer-motion'
+import PageTransition from '@/components/PageTransition'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -52,29 +54,10 @@ const AuthenticatedApp = () => {
   }
 
   // Render the main app
+  const location = React.useLocation();
   return (
-    <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
-      {Object.entries(Pages).map(([path, Page]) => (
-        <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
-          }
-        />
-      ))}
-      <Route path="/UserManagement" element={<LayoutWrapper currentPageName="UserManagement"><UserManagement /></LayoutWrapper>} />
-      <Route path="/SalarySettings" element={<LayoutWrapper currentPageName="SalarySettings"><SalarySettings /></LayoutWrapper>} />
-      <Route path="/NotificationSettings" element={<LayoutWrapper currentPageName="NotificationSettings"><NotificationSettings /></LayoutWrapper>} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <AnimatePresence mode="wait">
+    <Routes location={location} key={location.pathname}>
   );
 };
 
