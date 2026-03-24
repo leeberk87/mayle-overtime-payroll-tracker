@@ -1,12 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Home, Settings, ClipboardCheck, Plus } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 
+// Tab roots — navigating a tab always goes back to its root
+const TAB_ROOTS = {
+  Home: '/',
+  ApprovalDashboard: '/ApprovalDashboard',
+  Settings: '/Settings',
+};
+
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Track per-tab last visited path
+  const tabHistory = useRef({
+    Home: '/',
+    ApprovalDashboard: '/ApprovalDashboard',
+    Settings: '/Settings',
+  });
+
+  // Update history for the current tab based on the pathname
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/' || path.startsWith('/Home')) tabHistory.current.Home = path;
+    else if (path.startsWith('/Approval')) tabHistory.current.ApprovalDashboard = path;
+    else if (path.startsWith('/Settings') || path.startsWith('/Salary') || path.startsWith('/Notification') || path.startsWith('/UserManagement')) tabHistory.current.Settings = path;
+  }, [location.pathname]);
+
+  const navigateToTab = (tab) => {
+    // If already on the tab root, do nothing; otherwise restore last sub-page
+    const dest = tabHistory.current[tab] || TAB_ROOTS[tab];
+    navigate(dest);
+  };
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -14,9 +44,15 @@ export default function Layout({ children, currentPageName }) {
 
   const isAdmin = user?.role === 'admin';
 
-  const navLinkClass = (page) =>
+  // Derive active tab from current path
+  const path = location?.pathname || '/';
+  const activeTab = path.startsWith('/Approval') ? 'ApprovalDashboard'
+    : (path.startsWith('/Settings') || path.startsWith('/Salary') || path.startsWith('/Notification') || path.startsWith('/UserManagement')) ? 'Settings'
+    : 'Home';
+
+  const navLinkClass = (tab) =>
     `flex flex-col items-center justify-center rounded-xl transition-colors ${
-      currentPageName === page
+      activeTab === tab
         ? 'text-slate-900 bg-slate-100'
         : 'text-slate-400 hover:text-slate-600'
     }`;
@@ -30,23 +66,23 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Desktop Sidebar - visible on lg+ screens only */}
       <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-16 bg-white border-r border-slate-100 flex-col items-center pt-4 pb-6 gap-1 z-20">
-        <Link to={createPageUrl('Home')} className={`${navLinkClass('Home')} w-12 h-12`}>
+        <button onClick={() => navigateToTab('Home')} className={`${navLinkClass('Home')} w-12 h-12`}>
           <Home className="w-5 h-5" />
           <span className="text-[9px] mt-0.5 font-medium">Home</span>
-        </Link>
+        </button>
 
         {isAdmin && (
-          <Link to={createPageUrl('ApprovalDashboard')} className={`${navLinkClass('ApprovalDashboard')} w-12 h-12`}>
+          <button onClick={() => navigateToTab('ApprovalDashboard')} className={`${navLinkClass('ApprovalDashboard')} w-12 h-12`}>
             <ClipboardCheck className="w-5 h-5" />
             <span className="text-[9px] mt-0.5 font-medium">Approvals</span>
-          </Link>
+          </button>
         )}
 
         {isAdmin && (
-          <Link to={createPageUrl('Settings')} className={`${navLinkClass('Settings')} w-12 h-12`}>
+          <button onClick={() => navigateToTab('Settings')} className={`${navLinkClass('Settings')} w-12 h-12`}>
             <Settings className="w-5 h-5" />
             <span className="text-[9px] mt-0.5 font-medium">Settings</span>
-          </Link>
+          </button>
         )}
 
         <div className="mt-auto">
@@ -69,32 +105,32 @@ export default function Layout({ children, currentPageName }) {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 safe-bottom">
         <div className="max-w-lg mx-auto px-3">
           <div className="flex items-center justify-between py-1.5">
-            <Link
-              to={createPageUrl('Home')}
+            <button
+              onClick={() => navigateToTab('Home')}
               className={`${navLinkClass('Home')} py-1.5 px-4`}
             >
               <Home className="w-4 h-4" />
               <span className="text-[10px] mt-0.5 font-medium">Home</span>
-            </Link>
+            </button>
 
             {isAdmin && (
-              <Link
-                to={createPageUrl('ApprovalDashboard')}
+              <button
+                onClick={() => navigateToTab('ApprovalDashboard')}
                 className={`${navLinkClass('ApprovalDashboard')} py-1.5 px-4`}
               >
                 <ClipboardCheck className="w-4 h-4" />
                 <span className="text-[10px] mt-0.5 font-medium">Approvals</span>
-              </Link>
+              </button>
             )}
 
             {isAdmin && (
-              <Link
-                to={createPageUrl('Settings')}
+              <button
+                onClick={() => navigateToTab('Settings')}
                 className={`${navLinkClass('Settings')} py-1.5 px-4`}
               >
                 <Settings className="w-4 h-4" />
                 <span className="text-[10px] mt-0.5 font-medium">Settings</span>
-              </Link>
+              </button>
             )}
 
             <button
