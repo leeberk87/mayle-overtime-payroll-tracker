@@ -13,28 +13,14 @@ import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import AppHeader from '@/components/AppHeader';
 import SalarySummaryCard from '@/components/overtime/SalarySummaryCard';
 import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
-import OvertimeForm from '@/components/overtime/OvertimeForm';
 import MonthSelector from '@/components/overtime/MonthSelector';
-import AddEntryMenu from '@/components/overtime/AddEntryMenu';
-import ExpenseForm from '@/components/overtime/ExpenseForm';
 import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
 
-  useEffect(() => {
-    const handler = () => setMenuOpen(true);
-    window.addEventListener('open-add-entry-menu', handler);
-    return () => window.removeEventListener('open-add-entry-menu', handler);
-  }, []);
-
   const isAdmin = currentUser?.role === 'admin';
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [formOpen, setFormOpen] = useState(false);
-  const [expenseFormOpen, setExpenseFormOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState(null);
-  const [editingExpense, setEditingExpense] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const queryClient = useQueryClient();
 
@@ -76,33 +62,6 @@ export default function Home() {
     const minutes = countable.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
     return { totalOtPay: pay, totalOtHours: minutes / 60 };
   }, [filteredSessions]);
-
-  // Create/Update mutation (optimistic)
-  const saveMutation = useMutation({
-    mutationFn: (payload) => {
-      if (payload.id) return base44.entities.OvertimeSession.update(payload.id, payload.data);
-      return base44.entities.OvertimeSession.create(payload);
-    },
-    onMutate: async (payload) => {
-      await queryClient.cancelQueries({ queryKey: ['overtime-sessions'] });
-      const prev = queryClient.getQueryData(['overtime-sessions']);
-      queryClient.setQueryData(['overtime-sessions'], (old = []) => {
-        if (payload.id) return old.map(s => s.id === payload.id ? { ...s, ...payload.data } : s);
-        return [{ ...payload, id: `optimistic-${Date.now()}`, status: payload.status || 'pending' }, ...old];
-      });
-      return { prev };
-    },
-    onError: (_, __, ctx) => {
-      if (ctx?.prev) queryClient.setQueryData(['overtime-sessions'], ctx.prev);
-      toast.error('Failed to save entry. Please try again.');
-    },
-    onSuccess: (_, variables) => {
-      setFormOpen(false);
-      setEditingEntry(null);
-      toast.success(variables.id ? 'Entry updated!' : 'Overtime entry saved!');
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
-  });
 
   // Delete mutation (optimistic)
   const deleteMutation = useMutation({
@@ -167,33 +126,6 @@ export default function Home() {
     return ps + pe;
   }, [filteredSessions, filteredExpenses]);
 
-  // Save expense mutation (optimistic)
-  const saveExpenseMutation = useMutation({
-    mutationFn: (payload) => {
-      if (payload.id) return base44.entities.Expense.update(payload.id, payload.data);
-      return base44.entities.Expense.create(payload);
-    },
-    onMutate: async (payload) => {
-      await queryClient.cancelQueries({ queryKey: ['expenses'] });
-      const prev = queryClient.getQueryData(['expenses']);
-      queryClient.setQueryData(['expenses'], (old = []) => {
-        if (payload.id) return old.map(e => e.id === payload.id ? { ...e, ...payload.data } : e);
-        return [{ ...payload, id: `optimistic-${Date.now()}`, status: 'pending' }, ...old];
-      });
-      return { prev };
-    },
-    onError: (_, __, ctx) => {
-      if (ctx?.prev) queryClient.setQueryData(['expenses'], ctx.prev);
-      toast.error('Failed to save expense. Please try again.');
-    },
-    onSuccess: (_, variables) => {
-      setExpenseFormOpen(false);
-      setEditingExpense(null);
-      toast.success(variables.id ? 'Expense updated!' : 'Expense saved!');
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
-  });
-
   // Delete expense mutation (optimistic)
   const deleteExpenseMutation = useMutation({
     mutationFn: (id) => base44.entities.Expense.delete(id),
@@ -231,18 +163,11 @@ export default function Home() {
   });
 
   const handleEdit = (entry) => {
-    setEditingEntry(entry);
-    setFormOpen(true);
-  };
-
-  const handleFormClose = (open) => {
-    setFormOpen(open);
-    if (!open) setEditingEntry(null);
+    window.dispatchEvent(new CustomEvent('open-add-entry-menu', { detail: { type: 'edit-overtime', entry } }));
   };
 
   const handleEditExpense = (expense) => {
-    setEditingExpense(expense);
-    setExpenseFormOpen(true);
+    window.dispatchEvent(new CustomEvent('open-add-entry-menu', { detail: { type: 'edit-expense', entry: expense } }));
   };
 
   const isLoading = settingsLoading || sessionsLoading || expensesLoading;
@@ -372,33 +297,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Add Entry Menu - outside main wrapper, covers full screen */}
-      {menuOpen && (
-        <AddEntryMenu
-          onClose={() => setMenuOpen(false)}
-          onSelectOvertme={() => { setMenuOpen(false); setFormOpen(true); }}
-          onSelectExpense={() => { setMenuOpen(false); setExpenseFormOpen(true); }}
-        />
-      )}
-
-      {/* Overtime Form Modal */}
-      <OvertimeForm 
-        open={formOpen}
-        onOpenChange={handleFormClose}
-        onSubmit={saveMutation.mutate}
-        settings={settings}
-        isLoading={saveMutation.isPending}
-        editingEntry={editingEntry}
-      />
-
-      {/* Expense Form Modal */}
-      <ExpenseForm
-        open={expenseFormOpen}
-        onOpenChange={(open) => { setExpenseFormOpen(open); if (!open) setEditingExpense(null); }}
-        onSubmit={saveExpenseMutation.mutate}
-        isLoading={saveExpenseMutation.isPending}
-        editingEntry={editingExpense}
-      />
     </div>
   );
 }
