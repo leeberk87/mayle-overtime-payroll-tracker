@@ -9,19 +9,18 @@ import { Wallet, Bell, Users, ChevronRight, Trash2, Moon } from "lucide-react";
 import AppHeader from '@/components/AppHeader';
 import { Switch } from "@/components/ui/switch";
 import { Link } from 'react-router-dom';
-import useDarkMode from '@/hooks/useDarkMode';
+import { useTheme } from "next-themes";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  const [isDark, setIsDark] = useDarkMode();
-
-  if (loading) return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
+  if (loading) return <div className="min-h-screen bg-slate-50 dark:bg-background flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
   if (user?.role !== 'admin') return <Navigate to="/" replace />;
 
   const sections = [
@@ -65,11 +64,14 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-slate-100 rounded-lg"><Moon className="w-4 h-4 text-slate-600" /></div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-800">Dark Mode</p>
-                  <p className="text-xs text-slate-500">Switch between light and dark theme</p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Dark Mode</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Switch between light and dark theme</p>
                 </div>
               </div>
-              <Switch checked={isDark} onCheckedChange={setIsDark} />
+              <Switch 
+                checked={theme === 'dark'} 
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
+              />
             </CardContent>
           </Card>
         </div>

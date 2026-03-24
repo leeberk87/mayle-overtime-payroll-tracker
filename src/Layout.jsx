@@ -19,19 +19,19 @@ export default function Layout({ children, currentPageName }) {
   const navLinkClass = (tab) =>
     `flex flex-col items-center justify-center rounded-xl transition-colors ${
       activeTab === tab
-        ? 'text-slate-900 bg-slate-100'
-        : 'text-slate-400 hover:text-slate-600'
+        ? 'text-slate-900 bg-slate-100 dark:text-slate-100 dark:bg-slate-800'
+        : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
     }`;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-background">
       {/* Notification Bell - fixed top right on all screens */}
       <div className="fixed top-2 right-2 z-20">
         {user && <NotificationBell userEmail={user.email} />}
       </div>
 
       {/* Desktop Sidebar - visible on lg+ screens only */}
-      <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-16 bg-white border-r border-slate-100 flex-col items-center pt-4 pb-6 gap-1 z-20">
+      <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-16 bg-card border-r border-border flex-col items-center pt-4 pb-6 gap-1 z-20">
         <button onClick={() => { activeTab === 'Home' ? resetTab('Home') : navigateToTab('Home'); }} className={`${navLinkClass('Home')} w-12 h-12`}>
           <Home className="w-5 h-5" />
           <span className="text-[9px] mt-0.5 font-medium">Home</span>
@@ -68,7 +68,7 @@ export default function Layout({ children, currentPageName }) {
       </div>
 
       {/* Bottom Navigation - mobile only */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 safe-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border safe-bottom">
         <div className="max-w-lg mx-auto px-3">
           <div className="flex items-center justify-between py-1.5">
             <button
