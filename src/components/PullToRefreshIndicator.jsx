@@ -15,7 +15,7 @@ export default function PullToRefreshIndicator({ pullProgress, isRefreshing }) {
       style={{ height: isRefreshing ? 48 : Math.max(0, pullProgress * 48) }}
     >
       <RefreshCw
-        className={`text-slate-400 ${isRefreshing ? 'animate-spin' : ''}`}
+        className={`text-muted-foreground ${isRefreshing ? 'animate-spin' : ''}`}
         style={{
           width: size,
           height: size,
