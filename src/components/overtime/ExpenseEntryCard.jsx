@@ -47,18 +47,18 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDel
 
         {/* Edit — only if not deletion_requested */}
         {!entry.deletion_requested && (
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400" onClick={() => onEdit(entry)}>
-            <Pencil className="w-3.5 h-3.5" />
-          </Button>
+          <button onClick={() => onEdit(entry)} className="flex items-center justify-center w-11 h-11 rounded-full text-slate-400 active:bg-blue-50 active:text-blue-600 transition-colors">
+            <Pencil className="w-4 h-4" />
+          </button>
         )}
 
         {/* Delete (admin) or Request Deletion (user) */}
         {isAdmin ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500">
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
+              <button className="flex items-center justify-center w-11 h-11 rounded-full text-slate-400 active:bg-red-50 active:text-red-500 transition-colors">
+                <Trash2 className="w-4 h-4" />
+              </button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
@@ -74,9 +74,9 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDel
         ) : !entry.deletion_requested ? (
           <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500">
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
+              <button className="flex items-center justify-center w-11 h-11 rounded-full text-slate-400 active:bg-red-50 active:text-red-500 transition-colors">
+                <Trash2 className="w-4 h-4" />
+              </button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

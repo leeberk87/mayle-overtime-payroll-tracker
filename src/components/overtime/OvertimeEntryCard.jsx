@@ -92,9 +92,9 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDe
             {isAdmin ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-500 hover:bg-red-50 -mr-2">
+                  <button className="flex items-center justify-center w-11 h-11 rounded-full text-slate-400 active:bg-red-50 active:text-red-500 transition-colors -mr-2">
                     <Trash2 className="w-4 h-4" />
-                  </Button>
+                  </button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -110,9 +110,9 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDe
             ) : !entry.deletion_requested ? (
               <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-500 hover:bg-red-50 -mr-2">
+                  <button className="flex items-center justify-center w-11 h-11 rounded-full text-slate-400 active:bg-red-50 active:text-red-500 transition-colors -mr-2">
                     <Trash2 className="w-4 h-4" />
-                  </Button>
+                  </button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
