@@ -31,8 +31,8 @@ export default function Layout({ children, currentPageName }) {
         {user && <NotificationBell userEmail={user.email} />}
       </div>
 
-      {/* Desktop Sidebar - visible on lg+ screens only */}
-      <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-16 bg-card border-r border-border flex-col items-center pt-4 pb-6 gap-1 z-20">
+      {/* Desktop Sidebar - visible on md+ screens only */}
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-16 bg-card border-r border-border flex-col items-center pt-4 pb-6 gap-1 z-20">
         <button onClick={() => { activeTab === 'Home' ? resetTab('Home') : navigateToTab('Home'); }} className={`${navLinkClass('Home')} w-12 h-12`}>
           <Home className="w-5 h-5" />
           <span className="text-[9px] mt-0.5 font-medium">Home</span>
@@ -64,12 +64,12 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Main content area — shifts right on desktop to account for sidebar */}
-      <div className="lg:pl-16">
+      <div className="md:pl-16">
         {children}
       </div>
 
       {/* Bottom Navigation - mobile only */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border safe-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border safe-bottom">
         <div className="max-w-lg mx-auto px-3">
           <div className="flex items-center justify-between py-1.5">
             <button
@@ -112,7 +112,7 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Bottom padding for mobile nav — removed on desktop */}
-      <div className="h-16 lg:h-0 safe-bottom" />
+      <div className="h-16 md:h-0 safe-bottom" />
 
       {/* Global Modals to add entries from anywhere */}
       <GlobalEntryModals />
