@@ -257,6 +257,15 @@ export default function ApprovalDashboard() {
   const totalPending = pendingSessions.length + pendingExpenses.length;
   const totalDeletionRequests = deletionSessionRequests.length + deletionExpenseRequests.length;
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['pending-sessions'] }),
+      queryClient.invalidateQueries({ queryKey: ['pending-expenses'] }),
+      queryClient.invalidateQueries({ queryKey: ['deletion-sessions'] }),
+      queryClient.invalidateQueries({ queryKey: ['deletion-expenses'] }),
+    ]);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader
@@ -265,7 +274,7 @@ export default function ApprovalDashboard() {
         backPath="/"
       />
 
-      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-6 space-y-8">
+      <div className="px-4 md:px-6 py-6 space-y-8">
         {/* Pending Overtime */}
         <div>
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">

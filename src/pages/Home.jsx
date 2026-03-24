@@ -15,6 +15,7 @@ import SalarySummaryCard from '@/components/overtime/SalarySummaryCard';
 import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
 import MonthSelector from '@/components/overtime/MonthSelector';
 import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
+import PullToRefresh from '@/components/PullToRefresh';
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -162,6 +163,14 @@ export default function Home() {
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
+      queryClient.invalidateQueries({ queryKey: ['expenses'] }),
+      queryClient.invalidateQueries({ queryKey: ['settings'] }),
+    ]);
+  };
+
   const handleEdit = (entry) => {
     window.dispatchEvent(new CustomEvent('open-add-entry-menu', { detail: { type: 'edit-overtime', entry } }));
   };
@@ -181,7 +190,7 @@ export default function Home() {
       <AppHeader title="Mayle" subtitle="Overtime & Salary Tracker" />
       <PullToRefreshIndicator pullProgress={pullProgress} isRefreshing={isRefreshing} />
 
-      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-6 space-y-6">
+      <div className="px-4 md:px-6 py-6 space-y-6">
         {/* Admin pending banner */}
         {isAdmin && pendingCount > 0 && (
           <Link to="/ApprovalDashboard">

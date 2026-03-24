@@ -15,8 +15,6 @@ export default function Layout({ children, currentPageName }) {
 
   const isAdmin = user?.role === 'admin';
 
-
-
   const navLinkClass = (tab) =>
     `flex flex-col items-center justify-center rounded-xl transition-colors ${
       activeTab === tab
@@ -63,14 +61,14 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </nav>
 
-      {/* Main content area — shifts right on desktop to account for sidebar */}
-      <div className="md:pl-16">
+      {/* Main content area — shifts right on desktop, respects landscape safe areas */}
+      <div className="md:pl-16 safe-left safe-right">
         {children}
       </div>
 
       {/* Bottom Navigation - mobile only */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border safe-bottom">
-        <div className="max-w-lg mx-auto px-3">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border safe-bottom safe-left safe-right">
+        <div className="px-4">
           <div className="flex items-center justify-between py-1.5">
             <button
               onClick={() => { activeTab === 'Home' ? resetTab('Home') : navigateToTab('Home'); }}
