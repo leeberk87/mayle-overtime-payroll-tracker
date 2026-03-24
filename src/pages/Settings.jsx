@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Wallet, Bell, Users, ChevronRight, Trash2 } from "lucide-react";
+import { Wallet, Bell, Users, ChevronRight, Trash2, Moon } from "lucide-react";
 import AppHeader from '@/components/AppHeader';
+import { Switch } from "@/components/ui/switch";
 import { Link } from 'react-router-dom';
+import useDarkMode from '@/hooks/useDarkMode';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -17,7 +19,9 @@ export default function Settings() {
     base44.auth.me().then(setUser).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
+  const [isDark, setIsDark] = useDarkMode();
+
+  if (loading) return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
   if (user?.role !== 'admin') return <Navigate to="/" replace />;
 
   const sections = [
@@ -52,6 +56,23 @@ export default function Settings() {
             </Card>
           </Link>
         ))}
+
+        {/* Appearance */}
+        <div className="pt-4">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Appearance</p>
+          <Card className="border-slate-100 shadow-sm">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-slate-100 rounded-lg"><Moon className="w-4 h-4 text-slate-600" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">Dark Mode</p>
+                  <p className="text-xs text-slate-500">Switch between light and dark theme</p>
+                </div>
+              </div>
+              <Switch checked={isDark} onCheckedChange={setIsDark} />
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Account Deletion */}
         <div className="pt-4">
