@@ -62,19 +62,19 @@ export default function SalarySettings() {
     saveMutation.mutate({ effective_from: currentMonth, base_salary: salary, transport_allowance: trans, overtime_rate: rate });
   };
 
-  if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
   if (user?.role !== 'admin') return <Navigate to="/" replace />;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <AppHeader title="Salary Settings" subtitle="Configure compensation rates" backPath="/Settings" />
 
       <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <Card className="bg-blue-50 border-blue-100">
+        <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50">
           <CardContent className="p-4">
             <div className="flex gap-3">
-              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-blue-800">Changes apply from the current month onwards. Previous months keep their original rates.</p>
+              <Info className="w-5 h-5 text-blue-600 dark:text-blue-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-blue-800 dark:text-blue-300">Changes apply from the current month onwards. Previous months keep their original rates.</p>
             </div>
           </CardContent>
         </Card>
@@ -85,10 +85,10 @@ export default function SalarySettings() {
           </div>
         ) : (
           <>
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-slate-100 rounded-lg"><Wallet className="w-4 h-4 text-slate-600" /></div>
+                  <div className="p-2 bg-secondary rounded-lg"><Wallet className="w-4 h-4 text-secondary-foreground" /></div>
                   <div>
                     <CardTitle className="text-base">Base Salary</CardTitle>
                     <CardDescription className="text-xs">Fixed monthly salary before overtime</CardDescription>
@@ -97,16 +97,16 @@ export default function SalarySettings() {
               </CardHeader>
               <CardContent>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₪</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₪</span>
                   <Input type="number" value={baseSalary} onChange={(e) => setBaseSalary(e.target.value)} className="pl-8 text-lg font-semibold" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-slate-100 rounded-lg"><Car className="w-4 h-4 text-slate-600" /></div>
+                  <div className="p-2 bg-secondary rounded-lg"><Car className="w-4 h-4 text-secondary-foreground" /></div>
                   <div>
                     <CardTitle className="text-base">Transport Allowance</CardTitle>
                     <CardDescription className="text-xs">Monthly travel/commute allowance</CardDescription>
@@ -115,16 +115,16 @@ export default function SalarySettings() {
               </CardHeader>
               <CardContent>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₪</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₪</span>
                   <Input type="number" value={transport} onChange={(e) => setTransport(e.target.value)} className="pl-8 text-lg font-semibold" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-slate-100 rounded-lg"><Clock className="w-4 h-4 text-slate-600" /></div>
+                  <div className="p-2 bg-secondary rounded-lg"><Clock className="w-4 h-4 text-secondary-foreground" /></div>
                   <div>
                     <CardTitle className="text-base">Overtime Rate</CardTitle>
                     <CardDescription className="text-xs">Hourly rate for overtime hours</CardDescription>
@@ -133,9 +133,9 @@ export default function SalarySettings() {
               </CardHeader>
               <CardContent>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₪</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₪</span>
                   <Input type="number" value={overtimeRate} onChange={(e) => setOvertimeRate(e.target.value)} className="pl-8 text-lg font-semibold" />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">/hr</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">/hr</span>
                 </div>
               </CardContent>
             </Card>
