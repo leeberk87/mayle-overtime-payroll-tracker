@@ -252,8 +252,8 @@ export default function ApprovalDashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       <PullToRefresh onRefresh={handleRefresh} />
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-4">
+      <div className="bg-white border-b border-slate-100 sticky top-0 z-10 safe-top">
+        <div className="px-4 md:px-6 py-4">
           <div className="flex items-center gap-3">
             <Link to={createPageUrl('Home')}>
               <Button variant="ghost" size="icon" className="text-slate-600">
@@ -268,7 +268,7 @@ export default function ApprovalDashboard() {
         </div>
       </div>
 
-      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-6 space-y-8">
+      <div className="px-4 md:px-6 py-6 space-y-8">
         {/* Pending Overtime */}
         <div>
           <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-3">

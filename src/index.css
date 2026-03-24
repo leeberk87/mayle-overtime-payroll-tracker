@@ -85,4 +85,15 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Ensure inputs have proper tap size for iOS */
+  input, textarea, select {
+    min-height: 44px;
+  }
 }
+
+/* Safe area utility classes for notched/Dynamic Island iPhones */
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-left { padding-left: env(safe-area-inset-left); }
+.safe-right { padding-right: env(safe-area-inset-right); }
