@@ -25,7 +25,7 @@ export default function TimePicker({ value, onChange }) {
 
   return (
     <div className="flex items-center gap-1">
-      <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+      <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
       <BottomSheetSelect
         value={hour}
         onValueChange={handleHour}
@@ -34,7 +34,7 @@ export default function TimePicker({ value, onChange }) {
         title="Select Hour"
         triggerClassName="h-11 w-20"
       />
-      <span className="text-slate-500 font-semibold">:</span>
+      <span className="text-muted-foreground font-semibold">:</span>
       <BottomSheetSelect
         value={minute}
         onValueChange={handleMinute}
