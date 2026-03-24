@@ -27,7 +27,7 @@ export function BottomSheet({ open, onOpenChange, children, title }) {
           />
           <motion.div
             ref={sheetRef}
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl safe-bottom"
+            className="absolute bottom-0 left-0 right-0 bg-card rounded-t-2xl safe-bottom border-t border-border"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -35,11 +35,11 @@ export function BottomSheet({ open, onOpenChange, children, title }) {
           >
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 bg-slate-200 rounded-full" />
+              <div className="w-10 h-1 bg-secondary rounded-full" />
             </div>
             {title && (
               <div className="px-5 pb-3 pt-1">
-                <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+                <h3 className="text-lg font-semibold text-foreground">{title}</h3>
               </div>
             )}
             <div className="px-5 pb-6 max-h-[80vh] overflow-y-auto overscroll-contain">
@@ -56,8 +56,8 @@ export function BottomSheetItem({ children, onClick, destructive }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-4 min-h-[48px] px-4 py-3 rounded-xl text-left active:bg-slate-100 transition-colors ${
-        destructive ? 'text-red-600' : 'text-slate-800'
+      className={`w-full flex items-center gap-4 min-h-[48px] px-4 py-3 rounded-xl text-left hover:bg-accent transition-colors ${
+        destructive ? 'text-red-600 dark:text-red-500' : 'text-foreground'
       }`}
     >
       {children}

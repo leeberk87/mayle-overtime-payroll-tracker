@@ -31,17 +31,17 @@ export default function NotificationBell({ userEmail }) {
   };
 
   const typeColors = {
-    submission: 'bg-blue-50 border-blue-100',
-    approval: 'bg-green-50 border-green-100',
-    decline: 'bg-red-50 border-red-100',
-    monthly_summary: 'bg-purple-50 border-purple-100',
+    submission: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50',
+    approval: 'bg-green-50 dark:bg-green-950/30 border-green-100 dark:border-green-900/50',
+    decline: 'bg-red-50 dark:bg-red-950/30 border-red-100 dark:border-red-900/50',
+    monthly_summary: 'bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50',
   };
 
   return (
     <>
       <button
         onClick={() => handleOpen(true)}
-        className="relative flex items-center justify-center w-11 h-11 rounded-full text-slate-600 active:bg-slate-100 transition-colors"
+        className="relative flex items-center justify-center w-11 h-11 rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
@@ -54,13 +54,13 @@ export default function NotificationBell({ userEmail }) {
       <BottomSheet open={open} onOpenChange={handleOpen} title="Notifications">
         <div className="max-h-[60vh] overflow-y-auto overscroll-contain -mx-1">
           {notifications.length === 0 ? (
-            <div className="py-10 text-center text-slate-400 text-sm">No notifications yet</div>
+            <div className="py-10 text-center text-muted-foreground text-sm">No notifications yet</div>
           ) : (
             notifications.map(n => (
-              <div key={n.id} className={`p-3 rounded-xl mb-1 ${typeColors[n.type] || 'bg-slate-50'} ${!n.is_read ? 'font-medium' : ''}`}>
-                <p className="text-sm text-slate-800">{n.title}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                <p className="text-xs text-slate-400 mt-1">
+              <div key={n.id} className={`p-3 rounded-xl mb-1 ${typeColors[n.type] || 'bg-secondary border-border'} border ${!n.is_read ? 'font-medium' : ''}`}>
+                <p className="text-sm text-foreground">{n.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                <p className="text-xs text-muted-foreground mt-1">
                   {n.created_date ? format(new Date(n.created_date), 'MMM d, h:mm a') : ''}
                 </p>
               </div>
