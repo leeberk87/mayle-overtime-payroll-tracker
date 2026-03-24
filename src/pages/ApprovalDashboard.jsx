@@ -51,11 +51,11 @@ function ReviewCard({ item, entityType, onApprove, onDecline, isProcessing }) {
       </div>
 
       <div className="px-4 pb-4 flex gap-2">
-        <Button size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+        <Button className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 text-white"
           onClick={() => onApprove(item.id, item.submitted_by, item.date)} disabled={isProcessing}>
           <CheckCircle className="w-4 h-4 mr-1" /> Approve
         </Button>
-        <Button size="sm" variant="outline" className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+        <Button variant="outline" className="flex-1 h-12 border-red-200 text-red-600 hover:bg-red-50"
           onClick={() => setShowDeclineInput(v => !v)} disabled={isProcessing}>
           <XCircle className="w-4 h-4 mr-1" /> Decline
         </Button>
@@ -65,7 +65,7 @@ function ReviewCard({ item, entityType, onApprove, onDecline, isProcessing }) {
         <div className="px-4 pb-4 space-y-2 border-t border-slate-50 pt-3">
           <Textarea placeholder="Reason for declining (optional)" value={reviewNotes}
             onChange={(e) => setReviewNotes(e.target.value)} rows={2} className="text-sm" />
-          <Button size="sm" variant="destructive" className="w-full" onClick={handleDecline} disabled={isProcessing}>
+          <Button variant="destructive" className="w-full h-12" onClick={handleDecline} disabled={isProcessing}>
             Confirm Decline
           </Button>
         </div>
@@ -108,11 +108,11 @@ function DeletionRequestCard({ item, entityType, onConfirmDelete, onRejectDeleti
       </div>
 
       <div className="px-4 pb-4 flex gap-2">
-        <Button size="sm" className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+        <Button className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white"
           onClick={() => onConfirmDelete(item.id)} disabled={isProcessing}>
           <Trash2 className="w-4 h-4 mr-1" /> Confirm Delete
         </Button>
-        <Button size="sm" variant="outline" className="flex-1"
+        <Button variant="outline" className="flex-1 h-12"
           onClick={() => onRejectDeletion(item.id)} disabled={isProcessing}>
           <XCircle className="w-4 h-4 mr-1" /> Keep Entry
         </Button>

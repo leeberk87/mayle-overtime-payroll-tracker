@@ -5,8 +5,8 @@ import AppHeader from '@/components/AppHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Users, UserPlus, Trash2, Shield, User, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -225,13 +225,9 @@ export default function UserManagement() {
         )}
       </div>
 
-      {/* Invite Dialog */}
-      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Invite User</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
+      {/* Invite Bottom Sheet */}
+      <BottomSheet open={inviteOpen} onOpenChange={setInviteOpen} title="Invite User">
+        <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-slate-700 mb-1 block">Email address</label>
               <Input
@@ -255,15 +251,14 @@ export default function UserManagement() {
               </Select>
             </div>
             <p className="text-xs text-slate-400">Invitations expire after 7 days.</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>
-            <Button onClick={handleInvite} disabled={inviting || !inviteEmail.trim()}>
-              {inviting ? 'Sending...' : 'Send Invitation'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" onClick={() => setInviteOpen(false)} className="flex-1">Cancel</Button>
+              <Button onClick={handleInvite} disabled={inviting || !inviteEmail.trim()} className="flex-1">
+                {inviting ? 'Sending...' : 'Send Invitation'}
+              </Button>
+            </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

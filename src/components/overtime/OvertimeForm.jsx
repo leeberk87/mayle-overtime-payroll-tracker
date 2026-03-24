@@ -6,13 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogFooter 
-} from "@/components/ui/dialog";
+import { BottomSheet } from '@/components/ui/BottomSheet';
 import { CalendarIcon, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TimePicker from './TimePicker';
@@ -111,15 +105,8 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
   const isValid = timesEntered && duration > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-slate-900">
-            {editingEntry ? 'Edit Overtime Entry' : 'Log Extra Time'}
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-5 py-4">
+    <BottomSheet open={open} onOpenChange={onOpenChange} title={editingEntry ? 'Edit Overtime Entry' : 'Log Extra Time'}>
+      <div className="space-y-5">
           {/* Date Picker */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-slate-700">Date</Label>
@@ -202,27 +189,26 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
               rows={3}
             />
           </div>
-        </div>
-        
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenChange(false)}
-            className="flex-1 sm:flex-none"
-          >
-            <X className="w-4 h-4 mr-2" />
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSubmit}
-            disabled={!isValid || isLoading}
-            className="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-900"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isLoading ? 'Saving...' : editingEntry ? 'Update Entry' : 'Save Entry'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-2">
+            <Button 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!isValid || isLoading}
+              className="flex-1 bg-slate-800 hover:bg-slate-900"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isLoading ? 'Saving...' : editingEntry ? 'Update' : 'Save'}
+            </Button>
+          </div>
+      </div>
+    </BottomSheet>
   );
 }

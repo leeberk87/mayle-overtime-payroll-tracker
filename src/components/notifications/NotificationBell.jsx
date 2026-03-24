@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import { BottomSheet } from '@/components/ui/BottomSheet';
 import { format } from 'date-fns';
 
 export default function NotificationBell({ userEmail }) {
@@ -39,27 +38,26 @@ export default function NotificationBell({ userEmail }) {
   };
 
   return (
-    <Popover open={open} onOpenChange={handleOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative text-slate-600">
-          <Bell className="w-5 h-5" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[calc(100vw-1rem)] sm:w-80 p-0 z-50" align="end" sideOffset={8}>
-        <div className="p-3 border-b border-slate-100">
-          <h3 className="font-semibold text-slate-900 text-sm">Notifications</h3>
-        </div>
-        <div className="max-h-80 overflow-y-auto">
+    <>
+      <button
+        onClick={() => handleOpen(true)}
+        className="relative flex items-center justify-center w-11 h-11 rounded-full text-slate-600 active:bg-slate-100 transition-colors"
+      >
+        <Bell className="w-5 h-5" />
+        {unreadCount > 0 && (
+          <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
+
+      <BottomSheet open={open} onOpenChange={handleOpen} title="Notifications">
+        <div className="max-h-[60vh] overflow-y-auto overscroll-contain -mx-1">
           {notifications.length === 0 ? (
-            <div className="p-6 text-center text-slate-400 text-sm">No notifications yet</div>
+            <div className="py-10 text-center text-slate-400 text-sm">No notifications yet</div>
           ) : (
             notifications.map(n => (
-              <div key={n.id} className={`p-3 border-b border-slate-50 ${typeColors[n.type] || ''} ${!n.is_read ? 'font-medium' : ''}`}>
+              <div key={n.id} className={`p-3 rounded-xl mb-1 ${typeColors[n.type] || 'bg-slate-50'} ${!n.is_read ? 'font-medium' : ''}`}>
                 <p className="text-sm text-slate-800">{n.title}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
                 <p className="text-xs text-slate-400 mt-1">
@@ -69,7 +67,7 @@ export default function NotificationBell({ userEmail }) {
             ))
           )}
         </div>
-      </PopoverContent>
-    </Popover>
+      </BottomSheet>
+    </>
   );
 }

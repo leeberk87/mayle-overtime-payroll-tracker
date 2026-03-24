@@ -15,15 +15,13 @@ export default function MonthSelector({ currentMonth, onChange }) {
   const isCurrentMonth = format(currentMonth, 'yyyy-MM') === format(new Date(), 'yyyy-MM');
   
   return (
-    <div className="flex items-center justify-between bg-white rounded-xl p-2 shadow-sm border border-slate-100">
-      <Button 
-        variant="ghost" 
-        size="icon"
+    <div className="flex items-center justify-between bg-white rounded-xl p-1 shadow-sm border border-slate-100">
+      <button
         onClick={handlePrev}
-        className="text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+        className="flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 active:bg-slate-100 transition-colors"
       >
         <ChevronLeft className="w-5 h-5" />
-      </Button>
+      </button>
       
       <div className="flex items-center gap-2">
         <Calendar className="w-4 h-4 text-slate-400" />
@@ -37,15 +35,13 @@ export default function MonthSelector({ currentMonth, onChange }) {
         )}
       </div>
       
-      <Button 
-        variant="ghost" 
-        size="icon"
+      <button
         onClick={handleNext}
         disabled={isCurrentMonth}
-        className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-30"
+        className="flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 active:bg-slate-100 transition-colors disabled:opacity-30"
       >
         <ChevronRight className="w-5 h-5" />
-      </Button>
+      </button>
     </div>
   );
 }

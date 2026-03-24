@@ -102,7 +102,7 @@ export default function Layout({ children, currentPageName }) {
       </div>
 
       {/* Bottom Navigation - mobile only */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 safe-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 safe-bottom">
         <div className="max-w-lg mx-auto px-3">
           <div className="flex items-center justify-between py-1.5">
             <button
@@ -135,7 +135,7 @@ export default function Layout({ children, currentPageName }) {
 
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('open-add-entry-menu'))}
-              className="flex flex-col items-center py-1.5 px-4 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
+              className="flex flex-col items-center justify-center py-1.5 px-4 rounded-xl transition-colors text-slate-400 active:text-slate-600"
             >
               <Plus className="w-4 h-4" />
               <span className="text-[10px] mt-0.5 font-medium">Add Entry</span>
