@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const TAB_ROOTS = {
@@ -21,56 +21,30 @@ function getTabForPath(path) {
 export default function useTabNavigation() {
   const location = useLocation();
   const navigate = useNavigate();
-  const stacks = useRef({
-    Home: ['/'],
-    ApprovalDashboard: ['/ApprovalDashboard'],
-    Settings: ['/Settings'],
-  });
 
+  // Derived from the URL — survives page refresh without any extra storage
   const activeTab = getTabForPath(location.pathname);
 
-  // Keep current tab's stack in sync with the actual path
-  useEffect(() => {
-    const path = location.pathname;
-    const tab = getTabForPath(path);
-    const stack = stacks.current[tab];
-
-    // Only push if this path is different from the top of the stack
-    if (stack[stack.length - 1] !== path) {
-      stack.push(path);
-    }
-  }, [location.pathname]);
-
+  // Switch to a tab — always replace so tapping tabs never adds to the browser back stack
   const navigateToTab = useCallback((tab) => {
-    const stack = stacks.current[tab];
-    const dest = stack[stack.length - 1] || TAB_ROOTS[tab];
-    if (dest !== location.pathname) {
-      navigate(dest);
-    }
-  }, [navigate, location.pathname]);
-
-  const goBack = useCallback((fallbackPath) => {
-    const tab = getTabForPath(location.pathname);
-    const stack = stacks.current[tab];
-
-    // Pop current page
-    if (stack.length > 1) {
-      stack.pop();
-      const prev = stack[stack.length - 1];
-      navigate(prev);
-    } else if (fallbackPath) {
-      navigate(fallbackPath);
-    } else {
-      navigate(TAB_ROOTS[tab]);
-    }
-  }, [navigate, location.pathname]);
-
-  // Reset a tab's stack when navigating to its root via the tab bar
-  const resetTab = useCallback((tab) => {
-    const root = TAB_ROOTS[tab];
-    stacks.current[tab] = [root];
-    navigate(root);
+    navigate(TAB_ROOTS[tab], { replace: true });
   }, [navigate]);
 
-  return { activeTab, navigateToTab, goBack, resetTab, stacks };
+  // Tapping the already-active tab resets it to its root
+  const resetTab = useCallback((tab) => {
+    navigate(TAB_ROOTS[tab], { replace: true });
+  }, [navigate]);
+
+  // AppHeader back button — uses browser history so it stays in sync with iOS swipe-back gesture.
+  // Falls back to a provided path (or the tab root) when there's no history to pop.
+  const goBack = useCallback((fallbackPath) => {
+    const canGoBack = (window.history.state?.idx ?? 0) > 0;
+    if (canGoBack) {
+      navigate(-1);
+    } else {
+      navigate(fallbackPath || TAB_ROOTS[getTabForPath(location.pathname)], { replace: true });
+    }
+  }, [navigate, location.pathname]);
+
+  return { activeTab, navigateToTab, goBack, resetTab };
 }

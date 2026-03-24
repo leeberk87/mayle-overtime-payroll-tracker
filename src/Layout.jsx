@@ -26,13 +26,13 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-background">
-      {/* Notification Bell - fixed top right on all screens */}
-      <div className="fixed top-2 right-2 z-20">
+      {/* Notification Bell - respects iOS status bar / notch via safe-area-inset-top */}
+      <div className="fixed right-2 z-20" style={{ top: 'max(0.5rem, env(safe-area-inset-top))' }}>
         {user && <NotificationBell userEmail={user.email} />}
       </div>
 
       {/* Desktop Sidebar - visible on md+ screens only */}
-      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-16 bg-card border-r border-border flex-col items-center pt-4 pb-6 gap-1 z-20">
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-16 bg-card border-r border-border flex-col items-center pb-6 gap-1 z-20" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
         <button onClick={() => { activeTab === 'Home' ? resetTab('Home') : navigateToTab('Home'); }} className={`${navLinkClass('Home')} w-12 h-12`}>
           <Home className="w-5 h-5" />
           <span className="text-[9px] mt-0.5 font-medium">Home</span>
@@ -74,7 +74,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center justify-between py-1.5">
             <button
               onClick={() => { activeTab === 'Home' ? resetTab('Home') : navigateToTab('Home'); }}
-              className={`${navLinkClass('Home')} py-1.5 px-4`}
+              className={`${navLinkClass('Home')} py-2.5 px-4`}
             >
               <Home className="w-4 h-4" />
               <span className="text-[10px] mt-0.5 font-medium">Home</span>
@@ -83,7 +83,7 @@ export default function Layout({ children, currentPageName }) {
             {isAdmin && (
               <button
                 onClick={() => { activeTab === 'ApprovalDashboard' ? resetTab('ApprovalDashboard') : navigateToTab('ApprovalDashboard'); }}
-                className={`${navLinkClass('ApprovalDashboard')} py-1.5 px-4`}
+                className={`${navLinkClass('ApprovalDashboard')} py-2.5 px-4`}
               >
                 <ClipboardCheck className="w-4 h-4" />
                 <span className="text-[10px] mt-0.5 font-medium">Approvals</span>
@@ -93,7 +93,7 @@ export default function Layout({ children, currentPageName }) {
             {isAdmin && (
               <button
                 onClick={() => { activeTab === 'Settings' ? resetTab('Settings') : navigateToTab('Settings'); }}
-                className={`${navLinkClass('Settings')} py-1.5 px-4`}
+                className={`${navLinkClass('Settings')} py-2.5 px-4`}
               >
                 <Settings className="w-4 h-4" />
                 <span className="text-[10px] mt-0.5 font-medium">Settings</span>
@@ -102,7 +102,7 @@ export default function Layout({ children, currentPageName }) {
 
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('open-add-entry-menu'))}
-              className="flex flex-col items-center justify-center py-1.5 px-4 rounded-xl transition-colors text-slate-400 active:text-slate-600"
+              className="flex flex-col items-center justify-center py-2.5 px-4 rounded-xl transition-colors text-slate-400 active:text-slate-600"
             >
               <Plus className="w-4 h-4" />
               <span className="text-[10px] mt-0.5 font-medium">Add Entry</span>

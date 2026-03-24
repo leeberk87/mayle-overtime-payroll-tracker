@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { AnimatePresence } from 'framer-motion'
 import PageTransition from '@/components/PageTransition'
@@ -8,12 +8,20 @@ import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
-import UserManagement from './pages/UserManagement';
-import SalarySettings from './pages/SalarySettings';
-import NotificationSettings from './pages/NotificationSettings';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { ThemeProvider } from "next-themes";
+
+// Lazy-load admin sub-pages — keeps the initial WebView bundle small
+const UserManagement = lazy(() => import('./pages/UserManagement'));
+const SalarySettings = lazy(() => import('./pages/SalarySettings'));
+const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
+
+const PageLoader = () => (
+  <div className="fixed inset-0 flex items-center justify-center bg-background">
+    <div className="w-8 h-8 border-4 border-muted border-t-foreground/40 rounded-full animate-spin" />
+  </div>
+);
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -54,7 +62,8 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <AnimatePresence mode="wait">
+    <Suspense fallback={<PageLoader />}>
+      <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={
           <LayoutWrapper currentPageName={mainPageKey}>
@@ -77,7 +86,8 @@ const AuthenticatedApp = () => {
         <Route path="/NotificationSettings" element={<LayoutWrapper currentPageName="NotificationSettings"><PageTransition><NotificationSettings /></PageTransition></LayoutWrapper>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
-    </AnimatePresence>
+      </AnimatePresence>
+    </Suspense>
   );
 };
 
