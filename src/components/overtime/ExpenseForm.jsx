@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format, subMonths, startOfMonth } from 'date-fns';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,13 +63,8 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
   const isValid = description.trim() && Number(amount) > 0 && !!currentUser;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm mx-auto rounded-2xl">
-        <DialogHeader>
-          <DialogTitle>{editingEntry ? 'Edit Expense' : 'Add Expense'}</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4 py-2">
+    <BottomSheet open={open} onOpenChange={onOpenChange} title={editingEntry ? 'Edit Expense' : 'Add Expense'}>
+      <div className="space-y-4">
           {/* Date */}
           <div className="space-y-1">
             <Label>Date</Label>
@@ -128,8 +123,7 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
           >
             {isLoading ? 'Saving...' : editingEntry ? 'Update Expense' : 'Save Expense'}
           </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BottomSheet>
   );
 }

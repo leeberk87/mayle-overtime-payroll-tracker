@@ -7,14 +7,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Clock, FileText, Receipt, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 
+import usePullToRefresh from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import AppHeader from '@/components/AppHeader';
 import SalarySummaryCard from '@/components/overtime/SalarySummaryCard';
 import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
-import OvertimeForm from '@/components/overtime/OvertimeForm';
 import MonthSelector from '@/components/overtime/MonthSelector';
-import AddEntryMenu from '@/components/overtime/AddEntryMenu';
-import ExpenseForm from '@/components/overtime/ExpenseForm';
 import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
 import PullToRefresh from '@/components/PullToRefresh';
 
@@ -22,18 +21,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
 
-  useEffect(() => {
-    const handler = () => setMenuOpen(true);
-    window.addEventListener('open-add-entry-menu', handler);
-    return () => window.removeEventListener('open-add-entry-menu', handler);
-  }, []);
-
   const isAdmin = currentUser?.role === 'admin';
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [formOpen, setFormOpen] = useState(false);
-  const [expenseFormOpen, setExpenseFormOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState(null);
-  const [editingExpense, setEditingExpense] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const queryClient = useQueryClient();
 
@@ -76,41 +64,40 @@ export default function Home() {
     return { totalOtPay: pay, totalOtHours: minutes / 60 };
   }, [filteredSessions]);
 
-  // Create/Update mutation
-  const saveMutation = useMutation({
-    mutationFn: (payload) => {
-      if (payload.id) {
-        return base44.entities.OvertimeSession.update(payload.id, payload.data);
-      }
-      return base44.entities.OvertimeSession.create(payload);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
-      setFormOpen(false);
-      setEditingEntry(null);
-      toast.success(variables.id ? 'Entry updated!' : 'Overtime entry saved!');
-    },
-    onError: () => toast.error('Failed to save entry. Please try again.'),
-  });
-
-  // Delete mutation
+  // Delete mutation (optimistic)
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.OvertimeSession.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
-      toast.success('Entry deleted');
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['overtime-sessions'] });
+      const prev = queryClient.getQueryData(['overtime-sessions']);
+      queryClient.setQueryData(['overtime-sessions'], (old = []) => old.filter(s => s.id !== id));
+      return { prev };
     },
-    onError: () => toast.error('Failed to delete entry. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['overtime-sessions'], ctx.prev);
+      toast.error('Failed to delete entry. Please try again.');
+    },
+    onSuccess: () => toast.success('Entry deleted'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
   });
 
-  // Request deletion mutation
+  // Request deletion mutation (optimistic)
   const requestOtDeletionMutation = useMutation({
     mutationFn: ({ id, reason }) => base44.entities.OvertimeSession.update(id, { deletion_requested: true, deletion_reason: reason }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
-      toast.success('Deletion request submitted');
+    onMutate: async ({ id, reason }) => {
+      await queryClient.cancelQueries({ queryKey: ['overtime-sessions'] });
+      const prev = queryClient.getQueryData(['overtime-sessions']);
+      queryClient.setQueryData(['overtime-sessions'], (old = []) =>
+        old.map(s => s.id === id ? { ...s, deletion_requested: true, deletion_reason: reason } : s)
+      );
+      return { prev };
     },
-    onError: () => toast.error('Failed to submit deletion request. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['overtime-sessions'], ctx.prev);
+      toast.error('Failed to submit deletion request. Please try again.');
+    },
+    onSuccess: () => toast.success('Deletion request submitted'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
   });
 
   // Fetch expenses
@@ -140,39 +127,40 @@ export default function Home() {
     return ps + pe;
   }, [filteredSessions, filteredExpenses]);
 
-  // Save expense mutation
-  const saveExpenseMutation = useMutation({
-    mutationFn: (payload) => {
-      if (payload.id) return base44.entities.Expense.update(payload.id, payload.data);
-      return base44.entities.Expense.create(payload);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      setExpenseFormOpen(false);
-      setEditingExpense(null);
-      toast.success(variables.id ? 'Expense updated!' : 'Expense saved!');
-    },
-    onError: () => toast.error('Failed to save expense. Please try again.'),
-  });
-
-  // Delete expense mutation
+  // Delete expense mutation (optimistic)
   const deleteExpenseMutation = useMutation({
     mutationFn: (id) => base44.entities.Expense.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      toast.success('Expense deleted');
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['expenses'] });
+      const prev = queryClient.getQueryData(['expenses']);
+      queryClient.setQueryData(['expenses'], (old = []) => old.filter(e => e.id !== id));
+      return { prev };
     },
-    onError: () => toast.error('Failed to delete expense. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['expenses'], ctx.prev);
+      toast.error('Failed to delete expense. Please try again.');
+    },
+    onSuccess: () => toast.success('Expense deleted'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
-  // Request expense deletion mutation
+  // Request expense deletion mutation (optimistic)
   const requestExpenseDeletionMutation = useMutation({
     mutationFn: ({ id, reason }) => base44.entities.Expense.update(id, { deletion_requested: true, deletion_reason: reason }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      toast.success('Deletion request submitted');
+    onMutate: async ({ id, reason }) => {
+      await queryClient.cancelQueries({ queryKey: ['expenses'] });
+      const prev = queryClient.getQueryData(['expenses']);
+      queryClient.setQueryData(['expenses'], (old = []) =>
+        old.map(e => e.id === id ? { ...e, deletion_requested: true, deletion_reason: reason } : e)
+      );
+      return { prev };
     },
-    onError: () => toast.error('Failed to submit deletion request. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['expenses'], ctx.prev);
+      toast.error('Failed to submit deletion request. Please try again.');
+    },
+    onSuccess: () => toast.success('Deletion request submitted'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
   const handleRefresh = async () => {
@@ -184,53 +172,39 @@ export default function Home() {
   };
 
   const handleEdit = (entry) => {
-    setEditingEntry(entry);
-    setFormOpen(true);
-  };
-
-  const handleFormClose = (open) => {
-    setFormOpen(open);
-    if (!open) setEditingEntry(null);
+    window.dispatchEvent(new CustomEvent('open-add-entry-menu', { detail: { type: 'edit-overtime', entry } }));
   };
 
   const handleEditExpense = (expense) => {
-    setEditingExpense(expense);
-    setExpenseFormOpen(true);
+    window.dispatchEvent(new CustomEvent('open-add-entry-menu', { detail: { type: 'edit-expense', entry: expense } }));
   };
 
   const isLoading = settingsLoading || sessionsLoading || expensesLoading;
 
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <PullToRefresh onRefresh={handleRefresh} />
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10 safe-top">
-        <div className="px-4 md:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Mayle</h1>
-              <p className="text-xs text-slate-500">Overtime & Salary Tracker</p>
-            </div>
+  const { pullProgress, isRefreshing } = usePullToRefresh(() => {
+    queryClient.invalidateQueries();
+  });
 
-          </div>
-        </div>
-      </div>
+  return (
+    <div className="min-h-screen bg-background">
+      <AppHeader title="Mayle" subtitle="Overtime & Salary Tracker" />
+      <PullToRefreshIndicator pullProgress={pullProgress} isRefreshing={isRefreshing} />
 
       <div className="px-4 md:px-6 py-6 space-y-6">
         {/* Admin pending banner */}
         {isAdmin && pendingCount > 0 && (
-          <Link to={createPageUrl('ApprovalDashboard')}>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+          <Link to="/ApprovalDashboard">
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <ClipboardCheck className="w-5 h-5 text-amber-600" />
+                <ClipboardCheck className="w-5 h-5 text-amber-600 dark:text-amber-500" />
                 <div>
-                  <p className="text-sm font-semibold text-amber-900">
+                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
                     {pendingCount} pending {pendingCount === 1 ? 'entry' : 'entries'}
                   </p>
-                  <p className="text-xs text-amber-700">Tap to review and approve</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400">Tap to review and approve</p>
                 </div>
               </div>
-              <span className="text-amber-600 text-xs font-medium">Review →</span>
+              <span className="text-amber-600 dark:text-amber-500 text-xs font-medium">Review →</span>
             </div>
           </Link>
         )}
@@ -256,11 +230,11 @@ export default function Home() {
         {/* Overtime Entries */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Overtime Entries
             </h2>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-muted-foreground">
               {filteredSessions.length} {filteredSessions.length === 1 ? 'entry' : 'entries'}
             </span>
           </div>
@@ -272,10 +246,10 @@ export default function Home() {
               ))}
             </div>
           ) : filteredSessions.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-100 p-8 text-center">
-              <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 text-sm">No overtime entries this month</p>
-              <p className="text-slate-400 text-xs mt-1">
+            <div className="bg-card rounded-xl border border-border p-8 text-center">
+              <FileText className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-muted-foreground text-sm">No overtime entries this month</p>
+              <p className="text-muted-foreground/70 text-xs mt-1">
                 Tap "Log Extra Time" to add one
               </p>
             </div>
@@ -298,22 +272,22 @@ export default function Home() {
         {/* Expense Entries */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Receipt className="w-4 h-4" />
               Expense Reimbursements
             </h2>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-muted-foreground">
               {filteredExpenses.length} {filteredExpenses.length === 1 ? 'entry' : 'entries'}
-              {filteredExpenses.length > 0 && ` · ₪${totalExpenses.toFixed(2)}`}
+              {filteredExpenses.length > 0 && ` · ₪${Math.round(totalExpenses)}`}
             </span>
           </div>
 
           {isLoading ? (
             <Skeleton className="h-20 w-full rounded-xl" />
           ) : filteredExpenses.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-100 p-6 text-center">
-              <Receipt className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-              <p className="text-slate-500 text-sm">No expenses this month</p>
+            <div className="bg-card rounded-xl border border-border p-6 text-center">
+              <Receipt className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-muted-foreground text-sm">No expenses this month</p>
             </div>
           ) : (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
@@ -332,33 +306,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Add Entry Menu - outside main wrapper, covers full screen */}
-      {menuOpen && (
-        <AddEntryMenu
-          onClose={() => setMenuOpen(false)}
-          onSelectOvertme={() => { setMenuOpen(false); setFormOpen(true); }}
-          onSelectExpense={() => { setMenuOpen(false); setExpenseFormOpen(true); }}
-        />
-      )}
-
-      {/* Overtime Form Modal */}
-      <OvertimeForm 
-        open={formOpen}
-        onOpenChange={handleFormClose}
-        onSubmit={saveMutation.mutate}
-        settings={settings}
-        isLoading={saveMutation.isPending}
-        editingEntry={editingEntry}
-      />
-
-      {/* Expense Form Modal */}
-      <ExpenseForm
-        open={expenseFormOpen}
-        onOpenChange={(open) => { setExpenseFormOpen(open); if (!open) setEditingExpense(null); }}
-        onSubmit={saveExpenseMutation.mutate}
-        isLoading={saveExpenseMutation.isPending}
-        editingEntry={editingExpense}
-      />
     </div>
   );
 }

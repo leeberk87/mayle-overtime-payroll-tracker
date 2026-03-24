@@ -32,43 +32,43 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDe
   };
 
   return (
-    <Card className="bg-white border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+    <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="text-sm font-medium text-slate-900">
+              <span className="text-sm font-medium text-foreground">
                 {(() => {
                   const [y, m, d] = (entry.date?.split('T')[0] || entry.date || '').split('-').map(Number);
                   return y ? format(new Date(y, m - 1, d), 'EEE, MMM d') : '';
                 })()}
               </span>
-              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">
                 {entry.start_time} – {entry.end_time}
               </span>
               {entry.status === 'pending' && (
-                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Pending</span>
+                <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 px-2 py-0.5 rounded-full font-medium">Pending</span>
               )}
               {entry.status === 'declined' && (
-                <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Declined</span>
+                <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-500 px-2 py-0.5 rounded-full font-medium">Declined</span>
               )}
               {entry.deletion_requested && (
-                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">Deletion Requested</span>
+                <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-500 px-2 py-0.5 rounded-full font-medium">Deletion Requested</span>
               )}
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 text-slate-600">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Clock className="w-4 h-4" />
                 <span className="text-sm">{durationStr}</span>
               </div>
-              <div className="text-emerald-600 font-semibold">
+              <div className="text-emerald-600 dark:text-emerald-500 font-semibold">
                 +₪{entry.ot_pay?.toLocaleString()}
               </div>
             </div>
 
             {entry.notes && (
-              <div className="mt-2 flex items-start gap-1.5 text-slate-500 text-xs">
+              <div className="mt-2 flex items-start gap-1.5 text-muted-foreground text-xs">
                 <FileText className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                 <span className="line-clamp-2">{entry.notes}</span>
               </div>
@@ -82,7 +82,7 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDe
                 variant="ghost"
                 size="icon"
                 onClick={() => onEdit(entry)}
-                className="text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                className="text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30"
               >
                 <Pencil className="w-4 h-4" />
               </Button>
@@ -92,9 +92,9 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDe
             {isAdmin ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-500 hover:bg-red-50 -mr-2">
+                  <button className="flex items-center justify-center w-11 h-11 rounded-full text-muted-foreground hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 transition-colors -mr-2">
                     <Trash2 className="w-4 h-4" />
-                  </Button>
+                  </button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -110,9 +110,9 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDe
             ) : !entry.deletion_requested ? (
               <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-500 hover:bg-red-50 -mr-2">
+                  <button className="flex items-center justify-center w-11 h-11 rounded-full text-muted-foreground hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 transition-colors -mr-2">
                     <Trash2 className="w-4 h-4" />
-                  </Button>
+                  </button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>

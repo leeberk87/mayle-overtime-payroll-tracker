@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Home, Settings, ClipboardCheck, Plus } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import useTabNavigation from '@/hooks/useTabNavigation';
+import GlobalEntryModals from '@/components/overtime/GlobalEntryModals';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -17,19 +18,19 @@ export default function Layout({ children, currentPageName }) {
   const navLinkClass = (tab) =>
     `flex flex-col items-center justify-center rounded-xl transition-colors ${
       activeTab === tab
-        ? 'text-slate-900 bg-slate-100'
-        : 'text-slate-400 hover:text-slate-600'
+        ? 'text-slate-900 bg-slate-100 dark:text-slate-100 dark:bg-slate-800'
+        : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
     }`;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-background">
       {/* Notification Bell - respects iOS status bar / notch via safe-area-inset-top */}
       <div className="fixed right-2 z-20" style={{ top: 'max(0.5rem, env(safe-area-inset-top))' }}>
         {user && <NotificationBell userEmail={user.email} />}
       </div>
 
-      {/* Desktop Sidebar - visible on md+ screens */}
-      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-16 bg-white border-r border-slate-100 flex-col items-center pb-6 gap-1 z-20" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
+      {/* Desktop Sidebar - visible on md+ screens only */}
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-16 bg-card border-r border-border flex-col items-center pb-6 gap-1 z-20" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
         <button onClick={() => { activeTab === 'Home' ? resetTab('Home') : navigateToTab('Home'); }} className={`${navLinkClass('Home')} w-12 h-12`}>
           <Home className="w-5 h-5" />
           <span className="text-[9px] mt-0.5 font-medium">Home</span>
@@ -66,7 +67,7 @@ export default function Layout({ children, currentPageName }) {
       </div>
 
       {/* Bottom Navigation - mobile only */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-100 safe-bottom safe-left safe-right">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border safe-bottom safe-left safe-right">
         <div className="px-4">
           <div className="flex items-center justify-between py-1.5">
             <button
@@ -110,6 +111,9 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Bottom padding for mobile nav — removed on desktop */}
       <div className="h-16 md:h-0 safe-bottom" />
+
+      {/* Global Modals to add entries from anywhere */}
+      <GlobalEntryModals />
     </div>
   );
 }

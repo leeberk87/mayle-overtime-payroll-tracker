@@ -40,12 +40,12 @@
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --background: 0 0% 4.5%;
+    --foreground: 0 0% 92%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 92%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 92%;
     --primary: 0 0% 98%;
     --primary-foreground: 0 0% 9%;
     --secondary: 0 0% 14.9%;
@@ -82,11 +82,39 @@
     @apply border-border outline-ring/50;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html {
+    overflow: hidden;
+    height: 100%;
   }
 
-  /* Ensure inputs have proper tap size for iOS */
+  body {
+    @apply bg-background text-foreground;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    height: 100%;
+    /* Disable pull-to-refresh browser default */
+    overscroll-behavior-y: none;
+    /* Disable highlight on tap */
+    -webkit-tap-highlight-color: transparent;
+    /* Disable text size adjust */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  button, [role='tab'], a, [role='button'] {
+    @apply select-none;
+    -webkit-touch-callout: none;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Keep icon-only buttons compact but still 44px tappable */
+  button[data-small], .btn-sm-tap {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Ensure inputs have proper tap size */
   input, textarea, select {
     min-height: 44px;
   }

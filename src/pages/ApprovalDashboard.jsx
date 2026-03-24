@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Clock, Receipt, CheckCircle, XCircle, Trash2 } from "lucide-react";
-import PullToRefresh from '@/components/PullToRefresh';
+import { Clock, Receipt, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import AppHeader from '@/components/AppHeader';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -24,49 +23,49 @@ function ReviewCard({ item, entityType, onApprove, onDecline, isProcessing }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-semibold text-slate-900">{item.submitted_by}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{dateStr}</p>
+            <p className="text-sm font-semibold text-foreground">{item.submitted_by}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{dateStr}</p>
           </div>
           <div className="text-right">
             {entityType === 'OvertimeSession' ? (
               <>
-                <p className="text-sm font-bold text-emerald-600">+₪{item.ot_pay || 0}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-500">+₪{item.ot_pay || 0}</p>
+                <p className="text-xs text-muted-foreground">
                   {Math.floor((item.duration_minutes || 0) / 60)}h {(item.duration_minutes || 0) % 60}m
                 </p>
               </>
             ) : (
-              <p className="text-sm font-bold text-amber-600">₪{item.amount || 0}</p>
+              <p className="text-sm font-bold text-amber-600 dark:text-amber-500">₪{item.amount || 0}</p>
             )}
           </div>
         </div>
-        {item.notes && <p className="text-xs text-slate-500 mt-2 italic">"{item.notes}"</p>}
-        {item.description && <p className="text-xs text-slate-600 mt-2">{item.description}</p>}
+        {item.notes && <p className="text-xs text-muted-foreground mt-2 italic">"{item.notes}"</p>}
+        {item.description && <p className="text-xs text-muted-foreground mt-2">{item.description}</p>}
         {entityType === 'OvertimeSession' && item.start_time && (
-          <p className="text-xs text-slate-400 mt-1">{item.start_time} – {item.end_time}</p>
+          <p className="text-xs text-muted-foreground mt-1">{item.start_time} – {item.end_time}</p>
         )}
       </div>
 
       <div className="px-4 pb-4 flex gap-2">
-        <Button size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+        <Button className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800 text-white"
           onClick={() => onApprove(item.id, item.submitted_by, item.date)} disabled={isProcessing}>
           <CheckCircle className="w-4 h-4 mr-1" /> Approve
         </Button>
-        <Button size="sm" variant="outline" className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+        <Button variant="outline" className="flex-1 h-12 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
           onClick={() => setShowDeclineInput(v => !v)} disabled={isProcessing}>
           <XCircle className="w-4 h-4 mr-1" /> Decline
         </Button>
       </div>
 
       {showDeclineInput && (
-        <div className="px-4 pb-4 space-y-2 border-t border-slate-50 pt-3">
+        <div className="px-4 pb-4 space-y-2 border-t border-border pt-3">
           <Textarea placeholder="Reason for declining (optional)" value={reviewNotes}
             onChange={(e) => setReviewNotes(e.target.value)} rows={2} className="text-sm" />
-          <Button size="sm" variant="destructive" className="w-full" onClick={handleDecline} disabled={isProcessing}>
+          <Button variant="destructive" className="w-full h-12" onClick={handleDecline} disabled={isProcessing}>
             Confirm Decline
           </Button>
         </div>
@@ -79,41 +78,41 @@ function DeletionRequestCard({ item, entityType, onConfirmDelete, onRejectDeleti
   const dateStr = item.date ? format(new Date(item.date + 'T00:00:00'), 'MMM d, yyyy') : '—';
 
   return (
-    <div className="bg-white rounded-xl border border-orange-200 shadow-sm overflow-hidden">
+    <div className="bg-card rounded-xl border border-orange-200 dark:border-orange-900/50 shadow-sm overflow-hidden">
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-semibold text-slate-900">{item.submitted_by}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{dateStr}</p>
+            <p className="text-sm font-semibold text-foreground">{item.submitted_by}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{dateStr}</p>
           </div>
           <div className="text-right">
             {entityType === 'OvertimeSession' ? (
               <>
-                <p className="text-sm font-bold text-emerald-600">+₪{item.ot_pay || 0}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-500">+₪{item.ot_pay || 0}</p>
+                <p className="text-xs text-muted-foreground">
                   {Math.floor((item.duration_minutes || 0) / 60)}h {(item.duration_minutes || 0) % 60}m
                 </p>
               </>
             ) : (
-              <p className="text-sm font-bold text-amber-600">₪{item.amount || 0}</p>
+              <p className="text-sm font-bold text-amber-600 dark:text-amber-500">₪{item.amount || 0}</p>
             )}
           </div>
         </div>
-        {item.notes && <p className="text-xs text-slate-500 mt-2 italic">"{item.notes}"</p>}
-        {item.description && <p className="text-xs text-slate-600 mt-2">{item.description}</p>}
+        {item.notes && <p className="text-xs text-muted-foreground mt-2 italic">"{item.notes}"</p>}
+        {item.description && <p className="text-xs text-muted-foreground mt-2">{item.description}</p>}
         {item.deletion_reason && (
-          <div className="mt-2 bg-orange-50 rounded-lg px-3 py-2">
-            <p className="text-xs text-orange-700 font-medium">Reason: {item.deletion_reason}</p>
+          <div className="mt-2 bg-orange-50 dark:bg-orange-950/30 rounded-lg px-3 py-2">
+            <p className="text-xs text-orange-700 dark:text-orange-500 font-medium">Reason: {item.deletion_reason}</p>
           </div>
         )}
       </div>
 
       <div className="px-4 pb-4 flex gap-2">
-        <Button size="sm" className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+        <Button className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white"
           onClick={() => onConfirmDelete(item.id)} disabled={isProcessing}>
           <Trash2 className="w-4 h-4 mr-1" /> Confirm Delete
         </Button>
-        <Button size="sm" variant="outline" className="flex-1"
+        <Button variant="outline" className="flex-1 h-12"
           onClick={() => onRejectDeletion(item.id)} disabled={isProcessing}>
           <XCircle className="w-4 h-4 mr-1" /> Keep Entry
         </Button>
@@ -166,12 +165,21 @@ export default function ApprovalDashboard() {
         submitted_by, status: 'approved', entity_type: entityType, entity_id: id, entry_date,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-expenses'] });
-      toast.success('Entry approved!');
+    onMutate: async ({ entityType, id }) => {
+      const qk = entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'];
+      await queryClient.cancelQueries({ queryKey: qk });
+      const prev = queryClient.getQueryData(qk);
+      queryClient.setQueryData(qk, (old = []) => old.filter(i => i.id !== id));
+      return { prev, qk };
     },
-    onError: () => toast.error('Failed to approve entry. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(ctx.qk, ctx.prev);
+      toast.error('Failed to approve entry. Please try again.');
+    },
+    onSuccess: () => toast.success('Entry approved!'),
+    onSettled: (_, __, { entityType }) => {
+      queryClient.invalidateQueries({ queryKey: entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'] });
+    },
   });
 
   const declineMutation = useMutation({
@@ -185,12 +193,21 @@ export default function ApprovalDashboard() {
         submitted_by, status: 'declined', entity_type: entityType, entity_id: id, entry_date, review_notes,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-expenses'] });
-      toast.success('Entry declined.');
+    onMutate: async ({ entityType, id }) => {
+      const qk = entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'];
+      await queryClient.cancelQueries({ queryKey: qk });
+      const prev = queryClient.getQueryData(qk);
+      queryClient.setQueryData(qk, (old = []) => old.filter(i => i.id !== id));
+      return { prev, qk };
     },
-    onError: () => toast.error('Failed to decline entry. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(ctx.qk, ctx.prev);
+      toast.error('Failed to decline entry. Please try again.');
+    },
+    onSuccess: () => toast.success('Entry declined.'),
+    onSettled: (_, __, { entityType }) => {
+      queryClient.invalidateQueries({ queryKey: entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'] });
+    },
   });
 
   const confirmDeleteMutation = useMutation({
@@ -230,7 +247,7 @@ export default function ApprovalDashboard() {
   const isProcessing = approveMutation.isPending || declineMutation.isPending || confirmDeleteMutation.isPending || rejectDeletionMutation.isPending;
 
   if (authLoading) {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
+    return <div className="min-h-screen bg-background flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
   }
 
   if (user?.role !== 'admin') {
@@ -250,34 +267,23 @@ export default function ApprovalDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <PullToRefresh onRefresh={handleRefresh} />
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10 safe-top">
-        <div className="px-4 md:px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Link to={createPageUrl('Home')}>
-              <Button variant="ghost" size="icon" className="text-slate-600">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Approval Dashboard</h1>
-              <p className="text-xs text-slate-500">{totalPending} pending · {totalDeletionRequests} deletion {totalDeletionRequests === 1 ? 'request' : 'requests'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <AppHeader
+        title="Approval Dashboard"
+        subtitle={`${totalPending} pending · ${totalDeletionRequests} deletion ${totalDeletionRequests === 1 ? 'request' : 'requests'}`}
+        backPath="/"
+      />
 
       <div className="px-4 md:px-6 py-6 space-y-8">
         {/* Pending Overtime */}
         <div>
-          <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-3">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
             <Clock className="w-4 h-4" /> Overtime Entries ({pendingSessions.length})
           </h2>
           {sessionsLoading ? (
             <div className="space-y-3"><Skeleton className="h-24 w-full rounded-xl" /><Skeleton className="h-24 w-full rounded-xl" /></div>
           ) : pendingSessions.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-100 p-6 text-center text-slate-400 text-sm">No pending overtime entries</div>
+            <div className="bg-card rounded-xl border border-border p-6 text-center text-muted-foreground text-sm">No pending overtime entries</div>
           ) : (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {pendingSessions.map(item => (
@@ -292,13 +298,13 @@ export default function ApprovalDashboard() {
 
         {/* Pending Expenses */}
         <div>
-          <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-3">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
             <Receipt className="w-4 h-4" /> Expense Entries ({pendingExpenses.length})
           </h2>
           {expensesLoading ? (
             <div className="space-y-3"><Skeleton className="h-24 w-full rounded-xl" /></div>
           ) : pendingExpenses.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-100 p-6 text-center text-slate-400 text-sm">No pending expense entries</div>
+            <div className="bg-card rounded-xl border border-border p-6 text-center text-muted-foreground text-sm">No pending expense entries</div>
           ) : (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {pendingExpenses.map(item => (
