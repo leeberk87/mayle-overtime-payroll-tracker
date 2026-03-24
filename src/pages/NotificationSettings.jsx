@@ -25,18 +25,18 @@ export default function NotificationSettings() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
   if (user?.role !== 'admin') return <Navigate to="/" replace />;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <AppHeader title="Notifications" subtitle="Manage how you receive alerts" backPath="/Settings" />
 
       <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6">
-        <Card className="border-slate-100 shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-slate-100 rounded-lg"><Bell className="w-4 h-4 text-slate-600" /></div>
+              <div className="p-2 bg-secondary rounded-lg"><Bell className="w-4 h-4 text-secondary-foreground" /></div>
               <div>
                 <CardTitle className="text-base">Notification Preferences</CardTitle>
                 <CardDescription className="text-xs">Choose how you receive alerts</CardDescription>
@@ -46,8 +46,8 @@ export default function NotificationSettings() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-800">Email notifications</p>
-                <p className="text-xs text-slate-500">Get emailed on new submissions & reviews</p>
+                <p className="text-sm font-medium text-foreground">Email notifications</p>
+                <p className="text-xs text-muted-foreground">Get emailed on new submissions & reviews</p>
               </div>
               <Switch
                 checked={notifEmail}
@@ -60,8 +60,8 @@ export default function NotificationSettings() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-800">In-app notifications</p>
-                <p className="text-xs text-slate-500">Bell icon alerts inside the app</p>
+                <p className="text-sm font-medium text-foreground">In-app notifications</p>
+                <p className="text-xs text-muted-foreground">Bell icon alerts inside the app</p>
               </div>
               <Switch
                 checked={notifInApp}
