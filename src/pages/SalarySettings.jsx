@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+import { Navigate } from 'react-router-dom';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Save, Wallet, Car, Clock, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Save, Wallet, Car, Clock, Info } from "lucide-react";
+import AppHeader from '@/components/AppHeader';
 import { toast } from "sonner";
 
 export default function SalarySettings() {
@@ -66,17 +67,7 @@ export default function SalarySettings() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link to="/Settings">
-            <Button variant="ghost" size="icon" className="text-slate-600"><ArrowLeft className="w-5 h-5" /></Button>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Salary Settings</h1>
-            <p className="text-xs text-slate-500">Configure compensation rates</p>
-          </div>
-        </div>
-      </div>
+      <AppHeader title="Salary Settings" subtitle="Configure compensation rates" backPath="/Settings" />
 
       <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6 space-y-6">
         <Card className="bg-blue-50 border-blue-100">

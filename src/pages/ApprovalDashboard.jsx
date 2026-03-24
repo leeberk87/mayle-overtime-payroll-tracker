@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, Navigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Clock, Receipt, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import { Clock, Receipt, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import AppHeader from '@/components/AppHeader';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -165,12 +165,21 @@ export default function ApprovalDashboard() {
         submitted_by, status: 'approved', entity_type: entityType, entity_id: id, entry_date,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-expenses'] });
-      toast.success('Entry approved!');
+    onMutate: async ({ entityType, id }) => {
+      const qk = entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'];
+      await queryClient.cancelQueries({ queryKey: qk });
+      const prev = queryClient.getQueryData(qk);
+      queryClient.setQueryData(qk, (old = []) => old.filter(i => i.id !== id));
+      return { prev, qk };
     },
-    onError: () => toast.error('Failed to approve entry. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(ctx.qk, ctx.prev);
+      toast.error('Failed to approve entry. Please try again.');
+    },
+    onSuccess: () => toast.success('Entry approved!'),
+    onSettled: (_, __, { entityType }) => {
+      queryClient.invalidateQueries({ queryKey: entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'] });
+    },
   });
 
   const declineMutation = useMutation({
@@ -184,12 +193,21 @@ export default function ApprovalDashboard() {
         submitted_by, status: 'declined', entity_type: entityType, entity_id: id, entry_date, review_notes,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-expenses'] });
-      toast.success('Entry declined.');
+    onMutate: async ({ entityType, id }) => {
+      const qk = entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'];
+      await queryClient.cancelQueries({ queryKey: qk });
+      const prev = queryClient.getQueryData(qk);
+      queryClient.setQueryData(qk, (old = []) => old.filter(i => i.id !== id));
+      return { prev, qk };
     },
-    onError: () => toast.error('Failed to decline entry. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(ctx.qk, ctx.prev);
+      toast.error('Failed to decline entry. Please try again.');
+    },
+    onSuccess: () => toast.success('Entry declined.'),
+    onSettled: (_, __, { entityType }) => {
+      queryClient.invalidateQueries({ queryKey: entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'] });
+    },
   });
 
   const confirmDeleteMutation = useMutation({
@@ -241,21 +259,11 @@ export default function ApprovalDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Link to={createPageUrl('Home')}>
-              <Button variant="ghost" size="icon" className="text-slate-600">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Approval Dashboard</h1>
-              <p className="text-xs text-slate-500">{totalPending} pending · {totalDeletionRequests} deletion {totalDeletionRequests === 1 ? 'request' : 'requests'}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AppHeader
+        title="Approval Dashboard"
+        subtitle={`${totalPending} pending · ${totalDeletionRequests} deletion ${totalDeletionRequests === 1 ? 'request' : 'requests'}`}
+        backPath="/"
+      />
 
       <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-6 space-y-8">
         {/* Pending Overtime */}

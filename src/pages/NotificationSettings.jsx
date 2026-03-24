@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Link, Navigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
+import AppHeader from '@/components/AppHeader';
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
@@ -30,17 +30,7 @@ export default function NotificationSettings() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link to="/Settings">
-            <Button variant="ghost" size="icon" className="text-slate-600"><ArrowLeft className="w-5 h-5" /></Button>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Notifications</h1>
-            <p className="text-xs text-slate-500">Manage how you receive alerts</p>
-          </div>
-        </div>
-      </div>
+      <AppHeader title="Notifications" subtitle="Manage how you receive alerts" backPath="/Settings" />
 
       <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6">
         <Card className="border-slate-100 shadow-sm">

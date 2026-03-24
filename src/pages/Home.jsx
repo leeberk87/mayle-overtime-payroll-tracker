@@ -10,6 +10,8 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 import usePullToRefresh from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import AppHeader from '@/components/AppHeader';
 import SalarySummaryCard from '@/components/overtime/SalarySummaryCard';
 import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
 import OvertimeForm from '@/components/overtime/OvertimeForm';
@@ -76,41 +78,67 @@ export default function Home() {
     return { totalOtPay: pay, totalOtHours: minutes / 60 };
   }, [filteredSessions]);
 
-  // Create/Update mutation
+  // Create/Update mutation (optimistic)
   const saveMutation = useMutation({
     mutationFn: (payload) => {
-      if (payload.id) {
-        return base44.entities.OvertimeSession.update(payload.id, payload.data);
-      }
+      if (payload.id) return base44.entities.OvertimeSession.update(payload.id, payload.data);
       return base44.entities.OvertimeSession.create(payload);
     },
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: ['overtime-sessions'] });
+      const prev = queryClient.getQueryData(['overtime-sessions']);
+      queryClient.setQueryData(['overtime-sessions'], (old = []) => {
+        if (payload.id) return old.map(s => s.id === payload.id ? { ...s, ...payload.data } : s);
+        return [{ ...payload, id: `optimistic-${Date.now()}`, status: payload.status || 'pending' }, ...old];
+      });
+      return { prev };
+    },
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['overtime-sessions'], ctx.prev);
+      toast.error('Failed to save entry. Please try again.');
+    },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
       setFormOpen(false);
       setEditingEntry(null);
       toast.success(variables.id ? 'Entry updated!' : 'Overtime entry saved!');
     },
-    onError: () => toast.error('Failed to save entry. Please try again.'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
   });
 
-  // Delete mutation
+  // Delete mutation (optimistic)
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.OvertimeSession.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
-      toast.success('Entry deleted');
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['overtime-sessions'] });
+      const prev = queryClient.getQueryData(['overtime-sessions']);
+      queryClient.setQueryData(['overtime-sessions'], (old = []) => old.filter(s => s.id !== id));
+      return { prev };
     },
-    onError: () => toast.error('Failed to delete entry. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['overtime-sessions'], ctx.prev);
+      toast.error('Failed to delete entry. Please try again.');
+    },
+    onSuccess: () => toast.success('Entry deleted'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
   });
 
-  // Request deletion mutation
+  // Request deletion mutation (optimistic)
   const requestOtDeletionMutation = useMutation({
     mutationFn: ({ id, reason }) => base44.entities.OvertimeSession.update(id, { deletion_requested: true, deletion_reason: reason }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
-      toast.success('Deletion request submitted');
+    onMutate: async ({ id, reason }) => {
+      await queryClient.cancelQueries({ queryKey: ['overtime-sessions'] });
+      const prev = queryClient.getQueryData(['overtime-sessions']);
+      queryClient.setQueryData(['overtime-sessions'], (old = []) =>
+        old.map(s => s.id === id ? { ...s, deletion_requested: true, deletion_reason: reason } : s)
+      );
+      return { prev };
     },
-    onError: () => toast.error('Failed to submit deletion request. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['overtime-sessions'], ctx.prev);
+      toast.error('Failed to submit deletion request. Please try again.');
+    },
+    onSuccess: () => toast.success('Deletion request submitted'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
   });
 
   // Fetch expenses
@@ -140,39 +168,67 @@ export default function Home() {
     return ps + pe;
   }, [filteredSessions, filteredExpenses]);
 
-  // Save expense mutation
+  // Save expense mutation (optimistic)
   const saveExpenseMutation = useMutation({
     mutationFn: (payload) => {
       if (payload.id) return base44.entities.Expense.update(payload.id, payload.data);
       return base44.entities.Expense.create(payload);
     },
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: ['expenses'] });
+      const prev = queryClient.getQueryData(['expenses']);
+      queryClient.setQueryData(['expenses'], (old = []) => {
+        if (payload.id) return old.map(e => e.id === payload.id ? { ...e, ...payload.data } : e);
+        return [{ ...payload, id: `optimistic-${Date.now()}`, status: 'pending' }, ...old];
+      });
+      return { prev };
+    },
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['expenses'], ctx.prev);
+      toast.error('Failed to save expense. Please try again.');
+    },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
       setExpenseFormOpen(false);
       setEditingExpense(null);
       toast.success(variables.id ? 'Expense updated!' : 'Expense saved!');
     },
-    onError: () => toast.error('Failed to save expense. Please try again.'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
-  // Delete expense mutation
+  // Delete expense mutation (optimistic)
   const deleteExpenseMutation = useMutation({
     mutationFn: (id) => base44.entities.Expense.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      toast.success('Expense deleted');
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['expenses'] });
+      const prev = queryClient.getQueryData(['expenses']);
+      queryClient.setQueryData(['expenses'], (old = []) => old.filter(e => e.id !== id));
+      return { prev };
     },
-    onError: () => toast.error('Failed to delete expense. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['expenses'], ctx.prev);
+      toast.error('Failed to delete expense. Please try again.');
+    },
+    onSuccess: () => toast.success('Expense deleted'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
-  // Request expense deletion mutation
+  // Request expense deletion mutation (optimistic)
   const requestExpenseDeletionMutation = useMutation({
     mutationFn: ({ id, reason }) => base44.entities.Expense.update(id, { deletion_requested: true, deletion_reason: reason }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      toast.success('Deletion request submitted');
+    onMutate: async ({ id, reason }) => {
+      await queryClient.cancelQueries({ queryKey: ['expenses'] });
+      const prev = queryClient.getQueryData(['expenses']);
+      queryClient.setQueryData(['expenses'], (old = []) =>
+        old.map(e => e.id === id ? { ...e, deletion_requested: true, deletion_reason: reason } : e)
+      );
+      return { prev };
     },
-    onError: () => toast.error('Failed to submit deletion request. Please try again.'),
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['expenses'], ctx.prev);
+      toast.error('Failed to submit deletion request. Please try again.');
+    },
+    onSuccess: () => toast.success('Deletion request submitted'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
   const handleEdit = (entry) => {
@@ -192,24 +248,14 @@ export default function Home() {
 
   const isLoading = settingsLoading || sessionsLoading || expensesLoading;
 
-  usePullToRefresh(() => {
+  const { pullProgress, isRefreshing } = usePullToRefresh(() => {
     queryClient.invalidateQueries();
   });
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Mayle</h1>
-              <p className="text-xs text-slate-500">Overtime & Salary Tracker</p>
-            </div>
-
-          </div>
-        </div>
-      </div>
+      <AppHeader title="Mayle" subtitle="Overtime & Salary Tracker" />
+      <PullToRefreshIndicator pullProgress={pullProgress} isRefreshing={isRefreshing} />
 
       <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-6 space-y-6">
         {/* Admin pending banner */}

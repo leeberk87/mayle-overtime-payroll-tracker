@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Wallet, Bell, Users, ChevronRight, Trash2 } from "lucide-react";
+import { Wallet, Bell, Users, ChevronRight, Trash2 } from "lucide-react";
+import AppHeader from '@/components/AppHeader';
+import { Link } from 'react-router-dom';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -31,17 +33,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link to="/">
-            <Button variant="ghost" size="icon" className="select-none text-slate-600"><ArrowLeft className="w-5 h-5" /></Button>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Settings</h1>
-            <p className="text-xs text-slate-500">Admin configuration</p>
-          </div>
-        </div>
-      </div>
+      <AppHeader title="Settings" subtitle="Admin configuration" backPath="/" />
 
       <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6 space-y-3">
         {sections.map(({ label, description, icon: Icon, path }) => (
