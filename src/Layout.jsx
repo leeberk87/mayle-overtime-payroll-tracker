@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Home, Settings, ClipboardCheck, Plus } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
@@ -7,7 +6,6 @@ import useTabNavigation from '@/hooks/useTabNavigation';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
-  const location = useLocation();
   const { activeTab, navigateToTab, resetTab } = useTabNavigation();
 
   useEffect(() => {
