@@ -140,7 +140,7 @@ export default function SalarySettings() {
               </CardContent>
             </Card>
 
-            <Button onClick={handleSave} disabled={saveMutation.isPending} className="w-full bg-slate-800 hover:bg-slate-900 py-6 text-base shadow-lg">
+            <Button onClick={handleSave} disabled={saveMutation.isPending} className="w-full py-6 text-base shadow-lg">
               <Save className="w-5 h-5 mr-2" />
               {saveMutation.isPending ? 'Saving...' : 'Save Settings'}
             </Button>
