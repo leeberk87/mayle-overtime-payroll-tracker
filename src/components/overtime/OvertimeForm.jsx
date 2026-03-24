@@ -162,17 +162,17 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
 
           {/* Duration Preview */}
           {duration > 0 && (
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <div className="bg-secondary rounded-xl p-4 border border-border">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Rounded Duration</p>
-                  <p className="text-lg font-semibold text-slate-900">
+                  <p className="text-xs text-muted-foreground mb-1">Rounded Duration</p>
+                  <p className="text-lg font-semibold text-foreground">
                     {hours > 0 ? `${hours}h ${mins}m` : `${mins}m`}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-500 mb-1">Overtime Pay</p>
-                  <p className="text-lg font-semibold text-emerald-600">+₪{pay}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Overtime Pay</p>
+                  <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-500">+₪{pay}</p>
                 </div>
               </div>
             </div>
@@ -202,7 +202,7 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
             <Button 
               onClick={handleSubmit}
               disabled={!isValid || isLoading}
-              className="flex-1 bg-slate-800 hover:bg-slate-900"
+              className="flex-1"
             >
               <Save className="w-4 h-4 mr-2" />
               {isLoading ? 'Saving...' : editingEntry ? 'Update' : 'Save'}

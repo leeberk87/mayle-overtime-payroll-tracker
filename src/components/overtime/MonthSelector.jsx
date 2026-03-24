@@ -15,21 +15,21 @@ export default function MonthSelector({ currentMonth, onChange }) {
   const isCurrentMonth = format(currentMonth, 'yyyy-MM') === format(new Date(), 'yyyy-MM');
   
   return (
-    <div className="flex items-center justify-between bg-white rounded-xl p-1 shadow-sm border border-slate-100">
+    <div className="flex items-center justify-between bg-card rounded-xl p-1 shadow-sm border border-border">
       <button
         onClick={handlePrev}
-        className="flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 active:bg-slate-100 transition-colors"
+        className="flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
       
       <div className="flex items-center gap-2">
-        <Calendar className="w-4 h-4 text-slate-400" />
-        <span className="font-semibold text-slate-900">
+        <Calendar className="w-4 h-4 text-muted-foreground" />
+        <span className="font-semibold text-foreground">
           {format(currentMonth, 'MMMM yyyy')}
         </span>
         {isCurrentMonth && (
-          <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+          <span className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-500 px-2 py-0.5 rounded-full">
             Current
           </span>
         )}
@@ -38,7 +38,7 @@ export default function MonthSelector({ currentMonth, onChange }) {
       <button
         onClick={handleNext}
         disabled={isCurrentMonth}
-        className="flex items-center justify-center w-11 h-11 rounded-xl text-slate-600 active:bg-slate-100 transition-colors disabled:opacity-30"
+        className="flex items-center justify-center w-11 h-11 rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-30"
       >
         <ChevronRight className="w-5 h-5" />
       </button>
