@@ -16,6 +16,7 @@ import MonthSelector from '@/components/overtime/MonthSelector';
 import AddEntryMenu from '@/components/overtime/AddEntryMenu';
 import ExpenseForm from '@/components/overtime/ExpenseForm';
 import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
+import PullToRefresh from '@/components/PullToRefresh';
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -174,6 +175,14 @@ export default function Home() {
     onError: () => toast.error('Failed to submit deletion request. Please try again.'),
   });
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
+      queryClient.invalidateQueries({ queryKey: ['expenses'] }),
+      queryClient.invalidateQueries({ queryKey: ['settings'] }),
+    ]);
+  };
+
   const handleEdit = (entry) => {
     setEditingEntry(entry);
     setFormOpen(true);
@@ -193,6 +202,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <PullToRefresh onRefresh={handleRefresh} />
       {/* Header */}
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-4">

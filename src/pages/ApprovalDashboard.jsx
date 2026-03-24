@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Clock, Receipt, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import PullToRefresh from '@/components/PullToRefresh';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -239,8 +240,18 @@ export default function ApprovalDashboard() {
   const totalPending = pendingSessions.length + pendingExpenses.length;
   const totalDeletionRequests = deletionSessionRequests.length + deletionExpenseRequests.length;
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['pending-sessions'] }),
+      queryClient.invalidateQueries({ queryKey: ['pending-expenses'] }),
+      queryClient.invalidateQueries({ queryKey: ['deletion-sessions'] }),
+      queryClient.invalidateQueries({ queryKey: ['deletion-expenses'] }),
+    ]);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <PullToRefresh onRefresh={handleRefresh} />
       <div className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">

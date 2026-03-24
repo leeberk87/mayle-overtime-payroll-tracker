@@ -30,20 +30,20 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Desktop Sidebar - visible on lg+ screens only */}
       <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-16 bg-white border-r border-slate-100 flex-col items-center pt-4 pb-6 gap-1 z-20">
-        <Link to={createPageUrl('Home')} className={`${navLinkClass('Home')} w-12 h-12`}>
+        <Link replace to={createPageUrl('Home')} className={`${navLinkClass('Home')} w-12 h-12`}>
           <Home className="w-5 h-5" />
           <span className="text-[9px] mt-0.5 font-medium">Home</span>
         </Link>
 
         {isAdmin && (
-          <Link to={createPageUrl('ApprovalDashboard')} className={`${navLinkClass('ApprovalDashboard')} w-12 h-12`}>
+          <Link replace to={createPageUrl('ApprovalDashboard')} className={`${navLinkClass('ApprovalDashboard')} w-12 h-12`}>
             <ClipboardCheck className="w-5 h-5" />
             <span className="text-[9px] mt-0.5 font-medium">Approvals</span>
           </Link>
         )}
 
         {isAdmin && (
-          <Link to={createPageUrl('Settings')} className={`${navLinkClass('Settings')} w-12 h-12`}>
+          <Link replace to={createPageUrl('Settings')} className={`${navLinkClass('Settings')} w-12 h-12`}>
             <Settings className="w-5 h-5" />
             <span className="text-[9px] mt-0.5 font-medium">Settings</span>
           </Link>
@@ -70,6 +70,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-lg mx-auto px-3">
           <div className="flex items-center justify-between py-1.5">
             <Link
+              replace
               to={createPageUrl('Home')}
               className={`${navLinkClass('Home')} py-1.5 px-4`}
             >
@@ -79,6 +80,7 @@ export default function Layout({ children, currentPageName }) {
 
             {isAdmin && (
               <Link
+                replace
                 to={createPageUrl('ApprovalDashboard')}
                 className={`${navLinkClass('ApprovalDashboard')} py-1.5 px-4`}
               >
@@ -89,6 +91,7 @@ export default function Layout({ children, currentPageName }) {
 
             {isAdmin && (
               <Link
+                replace
                 to={createPageUrl('Settings')}
                 className={`${navLinkClass('Settings')} py-1.5 px-4`}
               >
