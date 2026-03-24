@@ -20,34 +20,34 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDel
   };
 
   return (
-    <div className="bg-white rounded-xl border border-amber-100 p-4 flex items-start justify-between shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-card rounded-xl border border-border p-4 flex items-start justify-between shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start gap-3">
-        <div className="p-2 bg-amber-50 rounded-lg mt-0.5 flex-shrink-0">
-          <Receipt className="w-4 h-4 text-amber-600" />
+        <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg mt-0.5 flex-shrink-0">
+          <Receipt className="w-4 h-4 text-amber-600 dark:text-amber-500" />
         </div>
         <div>
-          <p className="font-semibold text-slate-800 leading-tight">{entry.description}</p>
+          <p className="font-semibold text-foreground leading-tight">{entry.description}</p>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <p className="text-xs text-slate-400">{format(parsedDate, 'EEE, MMM d')}</p>
+            <p className="text-xs text-muted-foreground">{format(parsedDate, 'EEE, MMM d')}</p>
             {entry.status === 'pending' && (
-              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Pending</span>
+              <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 px-2 py-0.5 rounded-full font-medium">Pending</span>
             )}
             {entry.status === 'declined' && (
-              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Declined</span>
+              <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-500 px-2 py-0.5 rounded-full font-medium">Declined</span>
             )}
             {entry.deletion_requested && (
-              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">Deletion Requested</span>
+              <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-500 px-2 py-0.5 rounded-full font-medium">Deletion Requested</span>
             )}
           </div>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="font-bold text-amber-700 text-base">₪{Math.round(entry.amount || 0)}</span>
+        <span className="font-bold text-amber-700 dark:text-amber-500 text-base">₪{Math.round(entry.amount || 0)}</span>
 
         {/* Edit — only if not deletion_requested */}
         {!entry.deletion_requested && (
-          <button onClick={() => onEdit(entry)} className="flex items-center justify-center w-11 h-11 rounded-full text-slate-400 active:bg-blue-50 active:text-blue-600 transition-colors">
+          <button onClick={() => onEdit(entry)} className="flex items-center justify-center w-11 h-11 rounded-full text-muted-foreground hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 transition-colors">
             <Pencil className="w-4 h-4" />
           </button>
         )}
@@ -56,7 +56,7 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDel
         {isAdmin ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <button className="flex items-center justify-center w-11 h-11 rounded-full text-slate-400 active:bg-red-50 active:text-red-500 transition-colors">
+              <button className="flex items-center justify-center w-11 h-11 rounded-full text-muted-foreground hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
             </AlertDialogTrigger>
@@ -74,7 +74,7 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDel
         ) : !entry.deletion_requested ? (
           <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <AlertDialogTrigger asChild>
-              <button className="flex items-center justify-center w-11 h-11 rounded-full text-slate-400 active:bg-red-50 active:text-red-500 transition-colors">
+              <button className="flex items-center justify-center w-11 h-11 rounded-full text-muted-foreground hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
             </AlertDialogTrigger>
