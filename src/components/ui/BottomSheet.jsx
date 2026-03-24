@@ -1,0 +1,66 @@
+import React, { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+export function BottomSheet({ open, onOpenChange, children, title }) {
+  const sheetRef = useRef(null);
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50">
+          <motion.div
+            className="absolute inset-0 bg-black/40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => onOpenChange(false)}
+          />
+          <motion.div
+            ref={sheetRef}
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl safe-bottom"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-slate-200 rounded-full" />
+            </div>
+            {title && (
+              <div className="px-5 pb-3 pt-1">
+                <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+              </div>
+            )}
+            <div className="px-5 pb-6 max-h-[80vh] overflow-y-auto overscroll-contain">
+              {children}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+export function BottomSheetItem({ children, onClick, destructive }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-4 min-h-[48px] px-4 py-3 rounded-xl text-left active:bg-slate-100 transition-colors ${
+        destructive ? 'text-red-600' : 'text-slate-800'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
