@@ -1,11 +1,18 @@
 import React from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import BottomSheetSelect from '@/components/ui/BottomSheetSelect';
 import { Clock } from 'lucide-react';
 
-const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-const minutes = ['00', '10', '20', '30', '40', '50'];
+const hourOptions = Array.from({ length: 24 }, (_, i) => {
+  const val = String(i).padStart(2, '0');
+  return { value: val, label: val };
+});
 
-export default function TimePicker({ value, onChange, placeholder = "HH:MM" }) {
+const minuteOptions = ['00', '10', '20', '30', '40', '50'].map(m => ({
+  value: m,
+  label: m,
+}));
+
+export default function TimePicker({ value, onChange }) {
   const [hour, minute] = value ? value.split(':') : ['', ''];
 
   const handleHour = (h) => {
@@ -19,27 +26,23 @@ export default function TimePicker({ value, onChange, placeholder = "HH:MM" }) {
   return (
     <div className="flex items-center gap-1">
       <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-      <Select value={hour} onValueChange={handleHour}>
-        <SelectTrigger className="w-20 h-9">
-          <SelectValue placeholder="HH" />
-        </SelectTrigger>
-        <SelectContent className="max-h-48">
-          {hours.map(h => (
-            <SelectItem key={h} value={h}>{h}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <BottomSheetSelect
+        value={hour}
+        onValueChange={handleHour}
+        options={hourOptions}
+        placeholder="HH"
+        title="Select Hour"
+        triggerClassName="h-11 w-20"
+      />
       <span className="text-slate-500 font-semibold">:</span>
-      <Select value={minute} onValueChange={handleMinute}>
-        <SelectTrigger className="w-20 h-9">
-          <SelectValue placeholder="MM" />
-        </SelectTrigger>
-        <SelectContent>
-          {minutes.map(m => (
-            <SelectItem key={m} value={m}>{m}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <BottomSheetSelect
+        value={minute}
+        onValueChange={handleMinute}
+        options={minuteOptions}
+        placeholder="MM"
+        title="Select Minute"
+        triggerClassName="h-11 w-20"
+      />
     </div>
   );
 }

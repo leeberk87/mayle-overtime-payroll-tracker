@@ -1,42 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Home, Settings, ClipboardCheck, Plus } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
-
-// Tab roots — navigating a tab always goes back to its root
-const TAB_ROOTS = {
-  Home: '/',
-  ApprovalDashboard: '/ApprovalDashboard',
-  Settings: '/Settings',
-};
+import useTabNavigation from '@/hooks/useTabNavigation';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const location = useLocation();
-  const navigate = useNavigate();
-
-  // Track per-tab last visited path
-  const tabHistory = useRef({
-    Home: '/',
-    ApprovalDashboard: '/ApprovalDashboard',
-    Settings: '/Settings',
-  });
-
-  // Update history for the current tab based on the pathname
-  useEffect(() => {
-    const path = location.pathname;
-    if (path === '/' || path.startsWith('/Home')) tabHistory.current.Home = path;
-    else if (path.startsWith('/Approval')) tabHistory.current.ApprovalDashboard = path;
-    else if (path.startsWith('/Settings') || path.startsWith('/Salary') || path.startsWith('/Notification') || path.startsWith('/UserManagement')) tabHistory.current.Settings = path;
-  }, [location.pathname]);
-
-  const navigateToTab = (tab) => {
-    // If already on the tab root, do nothing; otherwise restore last sub-page
-    const dest = tabHistory.current[tab] || TAB_ROOTS[tab];
-    navigate(dest);
-  };
+  const { activeTab, navigateToTab, resetTab } = useTabNavigation();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -44,11 +16,7 @@ export default function Layout({ children, currentPageName }) {
 
   const isAdmin = user?.role === 'admin';
 
-  // Derive active tab from current path
-  const path = location?.pathname || '/';
-  const activeTab = path.startsWith('/Approval') ? 'ApprovalDashboard'
-    : (path.startsWith('/Settings') || path.startsWith('/Salary') || path.startsWith('/Notification') || path.startsWith('/UserManagement')) ? 'Settings'
-    : 'Home';
+
 
   const navLinkClass = (tab) =>
     `flex flex-col items-center justify-center rounded-xl transition-colors ${
@@ -66,20 +34,20 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Desktop Sidebar - visible on lg+ screens only */}
       <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-16 bg-white border-r border-slate-100 flex-col items-center pt-4 pb-6 gap-1 z-20">
-        <button onClick={() => navigateToTab('Home')} className={`${navLinkClass('Home')} w-12 h-12`}>
+        <button onClick={() => { activeTab === 'Home' ? resetTab('Home') : navigateToTab('Home'); }} className={`${navLinkClass('Home')} w-12 h-12`}>
           <Home className="w-5 h-5" />
           <span className="text-[9px] mt-0.5 font-medium">Home</span>
         </button>
 
         {isAdmin && (
-          <button onClick={() => navigateToTab('ApprovalDashboard')} className={`${navLinkClass('ApprovalDashboard')} w-12 h-12`}>
+          <button onClick={() => { activeTab === 'ApprovalDashboard' ? resetTab('ApprovalDashboard') : navigateToTab('ApprovalDashboard'); }} className={`${navLinkClass('ApprovalDashboard')} w-12 h-12`}>
             <ClipboardCheck className="w-5 h-5" />
             <span className="text-[9px] mt-0.5 font-medium">Approvals</span>
           </button>
         )}
 
         {isAdmin && (
-          <button onClick={() => navigateToTab('Settings')} className={`${navLinkClass('Settings')} w-12 h-12`}>
+          <button onClick={() => { activeTab === 'Settings' ? resetTab('Settings') : navigateToTab('Settings'); }} className={`${navLinkClass('Settings')} w-12 h-12`}>
             <Settings className="w-5 h-5" />
             <span className="text-[9px] mt-0.5 font-medium">Settings</span>
           </button>
@@ -106,7 +74,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-lg mx-auto px-3">
           <div className="flex items-center justify-between py-1.5">
             <button
-              onClick={() => navigateToTab('Home')}
+              onClick={() => { activeTab === 'Home' ? resetTab('Home') : navigateToTab('Home'); }}
               className={`${navLinkClass('Home')} py-1.5 px-4`}
             >
               <Home className="w-4 h-4" />
@@ -115,7 +83,7 @@ export default function Layout({ children, currentPageName }) {
 
             {isAdmin && (
               <button
-                onClick={() => navigateToTab('ApprovalDashboard')}
+                onClick={() => { activeTab === 'ApprovalDashboard' ? resetTab('ApprovalDashboard') : navigateToTab('ApprovalDashboard'); }}
                 className={`${navLinkClass('ApprovalDashboard')} py-1.5 px-4`}
               >
                 <ClipboardCheck className="w-4 h-4" />
@@ -125,7 +93,7 @@ export default function Layout({ children, currentPageName }) {
 
             {isAdmin && (
               <button
-                onClick={() => navigateToTab('Settings')}
+                onClick={() => { activeTab === 'Settings' ? resetTab('Settings') : navigateToTab('Settings'); }}
                 className={`${navLinkClass('Settings')} py-1.5 px-4`}
               >
                 <Settings className="w-4 h-4" />

@@ -5,8 +5,8 @@ import AppHeader from '@/components/AppHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import BottomSheetSelect from '@/components/ui/BottomSheetSelect';
 import { Users, UserPlus, Trash2, Shield, User, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -139,19 +139,14 @@ export default function UserManagement() {
                     <p className="text-xs text-slate-400 truncate">{user.email}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Select
+                    <BottomSheetSelect
                       value={user.role || 'user'}
                       onValueChange={(role) => updateRoleMutation.mutate({ id: user.id, role })}
                       disabled={user.id === currentUser?.id}
-                    >
-                      <SelectTrigger className="h-8 text-xs w-24">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      options={[{ value: 'user', label: 'User' }, { value: 'admin', label: 'Admin' }]}
+                      title="Change Role"
+                      triggerClassName="h-9 w-24 text-xs"
+                    />
 
                     {user.id !== currentUser?.id && (
                       <AlertDialog>
@@ -240,15 +235,12 @@ export default function UserManagement() {
             </div>
             <div>
               <label className="text-sm font-medium text-slate-700 mb-1 block">Role</label>
-              <Select value={inviteRole} onValueChange={setInviteRole}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
+              <BottomSheetSelect
+                value={inviteRole}
+                onValueChange={setInviteRole}
+                options={[{ value: 'user', label: 'User' }, { value: 'admin', label: 'Admin' }]}
+                title="Select Role"
+              />
             </div>
             <p className="text-xs text-slate-400">Invitations expire after 7 days.</p>
             <div className="flex gap-3 pt-2">

@@ -22,7 +22,7 @@ export function BottomSheet({ open, onOpenChange, children, title }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
             onClick={() => onOpenChange(false)}
           />
           <motion.div
@@ -31,7 +31,7 @@ export function BottomSheet({ open, onOpenChange, children, title }) {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 35, mass: 0.8 }}
           >
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1">

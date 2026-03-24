@@ -1,16 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import useTabNavigation from '@/hooks/useTabNavigation';
 
 export default function AppHeader({ title, subtitle, backPath, rightContent }) {
-  const navigate = useNavigate();
+  const { goBack } = useTabNavigation();
 
   const handleBack = () => {
-    if (backPath) {
-      navigate(backPath);
-    } else {
-      navigate(-1);
-    }
+    goBack(backPath);
   };
 
   return (

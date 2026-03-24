@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Clock, FileText, Receipt, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 
 import usePullToRefresh from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
@@ -260,7 +259,7 @@ export default function Home() {
       <div className="max-w-lg lg:max-w-5xl mx-auto px-4 py-6 space-y-6">
         {/* Admin pending banner */}
         {isAdmin && pendingCount > 0 && (
-          <Link to={createPageUrl('ApprovalDashboard')}>
+          <Link to="/ApprovalDashboard">
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ClipboardCheck className="w-5 h-5 text-amber-600" />
