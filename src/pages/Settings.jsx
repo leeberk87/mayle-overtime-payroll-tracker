@@ -14,7 +14,7 @@ import { useTheme } from "next-themes";
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {}).finally(() => setLoading(false));
@@ -35,22 +35,22 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <AppHeader title="Settings" subtitle="Admin configuration" backPath="/" />
 
       <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6 space-y-3">
         {sections.map(({ label, description, icon: Icon, path }) => (
           <Link to={path} key={path}>
-            <Card className="border-slate-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-slate-100 rounded-lg"><Icon className="w-4 h-4 text-slate-600" /></div>
+                  <div className="p-2 bg-secondary rounded-lg"><Icon className="w-4 h-4 text-secondary-foreground" /></div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-800">{label}</p>
-                    <p className="text-xs text-slate-500">{description}</p>
+                    <p className="text-sm font-semibold text-foreground">{label}</p>
+                    <p className="text-xs text-muted-foreground">{description}</p>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </CardContent>
             </Card>
           </Link>
@@ -59,18 +59,18 @@ export default function Settings() {
         {/* Appearance */}
         <div className="pt-4">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Appearance</p>
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardContent className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-slate-100 rounded-lg"><Moon className="w-4 h-4 text-slate-600" /></div>
+                <div className="p-2 bg-secondary rounded-lg"><Moon className="w-4 h-4 text-secondary-foreground" /></div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Dark Mode</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Switch between light and dark theme</p>
+                  <p className="text-sm font-semibold text-foreground">Dark Mode</p>
+                  <p className="text-xs text-muted-foreground">Switch between light and dark theme</p>
                 </div>
               </div>
-              <Switch 
-                checked={theme === 'dark'} 
-                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
+              <Switch
+                checked={resolvedTheme === 'dark'}
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
               />
             </CardContent>
           </Card>
