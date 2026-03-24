@@ -252,7 +252,7 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <AppHeader title="Mayle" subtitle="Overtime & Salary Tracker" />
       <PullToRefreshIndicator pullProgress={pullProgress} isRefreshing={isRefreshing} />
 
@@ -260,17 +260,17 @@ export default function Home() {
         {/* Admin pending banner */}
         {isAdmin && pendingCount > 0 && (
           <Link to="/ApprovalDashboard">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <ClipboardCheck className="w-5 h-5 text-amber-600" />
+                <ClipboardCheck className="w-5 h-5 text-amber-600 dark:text-amber-500" />
                 <div>
-                  <p className="text-sm font-semibold text-amber-900">
+                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
                     {pendingCount} pending {pendingCount === 1 ? 'entry' : 'entries'}
                   </p>
-                  <p className="text-xs text-amber-700">Tap to review and approve</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400">Tap to review and approve</p>
                 </div>
               </div>
-              <span className="text-amber-600 text-xs font-medium">Review →</span>
+              <span className="text-amber-600 dark:text-amber-500 text-xs font-medium">Review →</span>
             </div>
           </Link>
         )}
@@ -296,11 +296,11 @@ export default function Home() {
         {/* Overtime Entries */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Overtime Entries
             </h2>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-muted-foreground">
               {filteredSessions.length} {filteredSessions.length === 1 ? 'entry' : 'entries'}
             </span>
           </div>
@@ -312,10 +312,10 @@ export default function Home() {
               ))}
             </div>
           ) : filteredSessions.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-100 p-8 text-center">
-              <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 text-sm">No overtime entries this month</p>
-              <p className="text-slate-400 text-xs mt-1">
+            <div className="bg-card rounded-xl border border-border p-8 text-center">
+              <FileText className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-muted-foreground text-sm">No overtime entries this month</p>
+              <p className="text-muted-foreground/70 text-xs mt-1">
                 Tap "Log Extra Time" to add one
               </p>
             </div>
@@ -338,11 +338,11 @@ export default function Home() {
         {/* Expense Entries */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Receipt className="w-4 h-4" />
               Expense Reimbursements
             </h2>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-muted-foreground">
               {filteredExpenses.length} {filteredExpenses.length === 1 ? 'entry' : 'entries'}
               {filteredExpenses.length > 0 && ` · ₪${Math.round(totalExpenses)}`}
             </span>
@@ -351,9 +351,9 @@ export default function Home() {
           {isLoading ? (
             <Skeleton className="h-20 w-full rounded-xl" />
           ) : filteredExpenses.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-100 p-6 text-center">
-              <Receipt className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-              <p className="text-slate-500 text-sm">No expenses this month</p>
+            <div className="bg-card rounded-xl border border-border p-6 text-center">
+              <Receipt className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-muted-foreground text-sm">No expenses this month</p>
             </div>
           ) : (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
