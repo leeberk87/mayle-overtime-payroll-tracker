@@ -11,6 +11,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { ThemeProvider } from "next-themes";
+import GlobalEntryModals from '@/components/overtime/GlobalEntryModals';
 
 // Lazy-load admin sub-pages — keeps the initial WebView bundle small
 const UserManagement = lazy(() => import('./pages/UserManagement'));
@@ -62,9 +63,10 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <Suspense fallback={<PageLoader />}>
-      <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+    <>
+      <Suspense fallback={<PageLoader />}>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
         <Route path="/" element={
           <LayoutWrapper currentPageName={mainPageKey}>
             <PageTransition><MainPage /></PageTransition>
@@ -85,9 +87,11 @@ const AuthenticatedApp = () => {
         <Route path="/SalarySettings" element={<LayoutWrapper currentPageName="SalarySettings"><PageTransition><SalarySettings /></PageTransition></LayoutWrapper>} />
         <Route path="/NotificationSettings" element={<LayoutWrapper currentPageName="NotificationSettings"><PageTransition><NotificationSettings /></PageTransition></LayoutWrapper>} />
         <Route path="*" element={<PageNotFound />} />
-      </Routes>
-      </AnimatePresence>
-    </Suspense>
+          </Routes>
+        </AnimatePresence>
+      </Suspense>
+      <GlobalEntryModals />
+    </>
   );
 };
 

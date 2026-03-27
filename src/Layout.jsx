@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Home, Settings, ClipboardCheck, Plus } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import useTabNavigation from '@/hooks/useTabNavigation';
-import GlobalEntryModals from '@/components/overtime/GlobalEntryModals';
+
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
@@ -112,8 +112,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Bottom padding for mobile nav — removed on desktop */}
       <div className="h-16 md:h-0 safe-bottom" />
 
-      {/* Global Modals to add entries from anywhere */}
-      <GlobalEntryModals />
+
     </div>
   );
 }
