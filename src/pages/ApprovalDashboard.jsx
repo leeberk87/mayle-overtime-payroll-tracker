@@ -9,10 +9,12 @@ import { Clock, Receipt, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import AppHeader from '@/components/AppHeader';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/LanguageContext';
 
 function ReviewCard({ item, entityType, onApprove, onDecline, isProcessing }) {
   const [reviewNotes, setReviewNotes] = useState('');
   const [showDeclineInput, setShowDeclineInput] = useState(false);
+  const { t } = useLanguage();
 
   const dateStr = item.date ? format(new Date(item.date + 'T00:00:00'), 'MMM d, yyyy') : '—';
 
@@ -53,20 +55,20 @@ function ReviewCard({ item, entityType, onApprove, onDecline, isProcessing }) {
       <div className="px-4 pb-4 flex gap-2">
         <Button className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800 text-white"
           onClick={() => onApprove(item.id, item.submitted_by, item.date)} disabled={isProcessing}>
-          <CheckCircle className="w-4 h-4 mr-1" /> Approve
+          <CheckCircle className="w-4 h-4 mr-1" /> {t('approval.approve')}
         </Button>
         <Button variant="outline" className="flex-1 h-12 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
           onClick={() => setShowDeclineInput(v => !v)} disabled={isProcessing}>
-          <XCircle className="w-4 h-4 mr-1" /> Decline
+          <XCircle className="w-4 h-4 mr-1" /> {t('approval.decline')}
         </Button>
       </div>
 
       {showDeclineInput && (
         <div className="px-4 pb-4 space-y-2 border-t border-border pt-3">
-          <Textarea placeholder="Reason for declining (optional)" value={reviewNotes}
+          <Textarea placeholder={t('approval.declineReasonPlaceholder')} value={reviewNotes}
             onChange={(e) => setReviewNotes(e.target.value)} rows={2} className="text-sm" />
           <Button variant="destructive" className="w-full h-12" onClick={handleDecline} disabled={isProcessing}>
-            Confirm Decline
+            {t('approval.confirmDecline')}
           </Button>
         </div>
       )}
@@ -75,6 +77,7 @@ function ReviewCard({ item, entityType, onApprove, onDecline, isProcessing }) {
 }
 
 function DeletionRequestCard({ item, entityType, onConfirmDelete, onRejectDeletion, isProcessing }) {
+  const { t } = useLanguage();
   const dateStr = item.date ? format(new Date(item.date + 'T00:00:00'), 'MMM d, yyyy') : '—';
 
   return (
@@ -110,11 +113,11 @@ function DeletionRequestCard({ item, entityType, onConfirmDelete, onRejectDeleti
       <div className="px-4 pb-4 flex gap-2">
         <Button className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white"
           onClick={() => onConfirmDelete(item.id)} disabled={isProcessing}>
-          <Trash2 className="w-4 h-4 mr-1" /> Confirm Delete
+          <Trash2 className="w-4 h-4 mr-1" /> {t('approval.confirmDelete')}
         </Button>
         <Button variant="outline" className="flex-1 h-12"
           onClick={() => onRejectDeletion(item.id)} disabled={isProcessing}>
-          <XCircle className="w-4 h-4 mr-1" /> Keep Entry
+          <XCircle className="w-4 h-4 mr-1" /> {t('approval.keepEntry')}
         </Button>
       </div>
     </div>
@@ -125,6 +128,7 @@ export default function ApprovalDashboard() {
   const [user, setUser] = React.useState(null);
   const [authLoading, setAuthLoading] = React.useState(true);
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {}).finally(() => setAuthLoading(false));
@@ -174,9 +178,9 @@ export default function ApprovalDashboard() {
     },
     onError: (_, __, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(ctx.qk, ctx.prev);
-      toast.error('Failed to approve entry. Please try again.');
+      toast.error(t('approval.toastApproveError'));
     },
-    onSuccess: () => toast.success('Entry approved!'),
+    onSuccess: () => toast.success(t('approval.toastApproved')),
     onSettled: (_, __, { entityType }) => {
       queryClient.invalidateQueries({ queryKey: entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'] });
     },
@@ -202,9 +206,9 @@ export default function ApprovalDashboard() {
     },
     onError: (_, __, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(ctx.qk, ctx.prev);
-      toast.error('Failed to decline entry. Please try again.');
+      toast.error(t('approval.toastDeclineError'));
     },
-    onSuccess: () => toast.success('Entry declined.'),
+    onSuccess: () => toast.success(t('approval.toastDeclined')),
     onSettled: (_, __, { entityType }) => {
       queryClient.invalidateQueries({ queryKey: entityType === 'OvertimeSession' ? ['pending-sessions'] : ['pending-expenses'] });
     },
@@ -223,9 +227,9 @@ export default function ApprovalDashboard() {
       queryClient.invalidateQueries({ queryKey: ['deletion-expenses'] });
       queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      toast.success('Entry deleted.');
+      toast.success(t('approval.toastDeleted'));
     },
-    onError: () => toast.error('Failed to delete entry. Please try again.'),
+    onError: () => toast.error(t('approval.toastDeleteError')),
   });
 
   const rejectDeletionMutation = useMutation({
@@ -239,9 +243,9 @@ export default function ApprovalDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deletion-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['deletion-expenses'] });
-      toast.success('Deletion request rejected — entry kept.');
+      toast.success(t('approval.toastDeletionRejected'));
     },
-    onError: () => toast.error('Something went wrong. Please try again.'),
+    onError: () => toast.error(t('approval.toastDeletionRejectedError')),
   });
 
   const isProcessing = approveMutation.isPending || declineMutation.isPending || confirmDeleteMutation.isPending || rejectDeletionMutation.isPending;
@@ -269,8 +273,12 @@ export default function ApprovalDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader
-        title="Approval Dashboard"
-        subtitle={`${totalPending} pending · ${totalDeletionRequests} deletion ${totalDeletionRequests === 1 ? 'request' : 'requests'}`}
+        title={t('approval.title')}
+        subtitle={t('approval.subtitle', {
+          pending: totalPending,
+          deletions: totalDeletionRequests,
+          request: totalDeletionRequests === 1 ? t('approval.deletionRequest') : t('approval.deletionRequests'),
+        })}
         backPath="/"
       />
 
@@ -278,12 +286,12 @@ export default function ApprovalDashboard() {
         {/* Pending Overtime */}
         <div>
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
-            <Clock className="w-4 h-4" /> Overtime Entries ({pendingSessions.length})
+            <Clock className="w-4 h-4" /> {t('approval.overtimeEntries', { count: pendingSessions.length })}
           </h2>
           {sessionsLoading ? (
             <div className="space-y-3"><Skeleton className="h-24 w-full rounded-xl" /><Skeleton className="h-24 w-full rounded-xl" /></div>
           ) : pendingSessions.length === 0 ? (
-            <div className="bg-card rounded-xl border border-border p-6 text-center text-muted-foreground text-sm">No pending overtime entries</div>
+            <div className="bg-card rounded-xl border border-border p-6 text-center text-muted-foreground text-sm">{t('approval.noPendingOvertime')}</div>
           ) : (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {pendingSessions.map(item => (
@@ -299,12 +307,12 @@ export default function ApprovalDashboard() {
         {/* Pending Expenses */}
         <div>
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
-            <Receipt className="w-4 h-4" /> Expense Entries ({pendingExpenses.length})
+            <Receipt className="w-4 h-4" /> {t('approval.expenseEntries', { count: pendingExpenses.length })}
           </h2>
           {expensesLoading ? (
             <div className="space-y-3"><Skeleton className="h-24 w-full rounded-xl" /></div>
           ) : pendingExpenses.length === 0 ? (
-            <div className="bg-card rounded-xl border border-border p-6 text-center text-muted-foreground text-sm">No pending expense entries</div>
+            <div className="bg-card rounded-xl border border-border p-6 text-center text-muted-foreground text-sm">{t('approval.noPendingExpenses')}</div>
           ) : (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {pendingExpenses.map(item => (
@@ -321,7 +329,7 @@ export default function ApprovalDashboard() {
         {(totalDeletionRequests > 0) && (
           <div>
             <h2 className="text-sm font-semibold text-orange-700 flex items-center gap-2 mb-3">
-              <Trash2 className="w-4 h-4" /> Deletion Requests ({totalDeletionRequests})
+              <Trash2 className="w-4 h-4" /> {t('approval.deletionRequestsSection', { count: totalDeletionRequests })}
             </h2>
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {deletionSessionRequests.map(item => (

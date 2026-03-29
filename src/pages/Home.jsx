@@ -16,10 +16,12 @@ import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
 import MonthSelector from '@/components/overtime/MonthSelector';
 import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
 import PullToRefresh from '@/components/PullToRefresh';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
+  const { t } = useLanguage();
 
   const isAdmin = currentUser?.role === 'admin';
   const [selectedMonth, setSelectedMonth] = useState(new Date());
@@ -75,9 +77,9 @@ export default function Home() {
     },
     onError: (_, __, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['overtime-sessions'], ctx.prev);
-      toast.error('Failed to delete entry. Please try again.');
+      toast.error(t('toasts.deleteEntryError'));
     },
-    onSuccess: () => toast.success('Entry deleted'),
+    onSuccess: () => toast.success(t('toasts.entryDeleted')),
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
   });
 
@@ -94,9 +96,9 @@ export default function Home() {
     },
     onError: (_, __, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['overtime-sessions'], ctx.prev);
-      toast.error('Failed to submit deletion request. Please try again.');
+      toast.error(t('toasts.deletionRequestError'));
     },
-    onSuccess: () => toast.success('Deletion request submitted'),
+    onSuccess: () => toast.success(t('toasts.deletionRequestSent')),
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['overtime-sessions'] }),
   });
 
@@ -138,9 +140,9 @@ export default function Home() {
     },
     onError: (_, __, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['expenses'], ctx.prev);
-      toast.error('Failed to delete expense. Please try again.');
+      toast.error(t('toasts.expenseDeleteError'));
     },
-    onSuccess: () => toast.success('Expense deleted'),
+    onSuccess: () => toast.success(t('toasts.expenseDeleted')),
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
@@ -157,9 +159,9 @@ export default function Home() {
     },
     onError: (_, __, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['expenses'], ctx.prev);
-      toast.error('Failed to submit deletion request. Please try again.');
+      toast.error(t('toasts.deletionRequestError'));
     },
-    onSuccess: () => toast.success('Deletion request submitted'),
+    onSuccess: () => toast.success(t('toasts.deletionRequestSent')),
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
@@ -187,7 +189,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader title="Mayle" subtitle="Overtime & Salary Tracker" />
+      <AppHeader title="Mayle" subtitle={t('home.subtitle')} />
       <PullToRefreshIndicator pullProgress={pullProgress} isRefreshing={isRefreshing} />
 
       <div className="px-4 md:px-6 py-6 space-y-6">
@@ -199,12 +201,12 @@ export default function Home() {
                 <ClipboardCheck className="w-5 h-5 text-amber-600 dark:text-amber-500" />
                 <div>
                   <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-                    {pendingCount} pending {pendingCount === 1 ? 'entry' : 'entries'}
+                    {t('home.pendingBanner', { count: pendingCount, entry: pendingCount === 1 ? t('home.pendingEntry') : t('home.pendingEntries') })}
                   </p>
-                  <p className="text-xs text-amber-700 dark:text-amber-400">Tap to review and approve</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400">{t('home.tapToReview')}</p>
                 </div>
               </div>
-              <span className="text-amber-600 dark:text-amber-500 text-xs font-medium">Review →</span>
+              <span className="text-amber-600 dark:text-amber-500 text-xs font-medium">{t('home.review')}</span>
             </div>
           </Link>
         )}
@@ -232,10 +234,10 @@ export default function Home() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              Overtime Entries
+              {t('home.overtimeEntries')}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {filteredSessions.length} {filteredSessions.length === 1 ? 'entry' : 'entries'}
+              {filteredSessions.length} {filteredSessions.length === 1 ? t('home.entry') : t('home.entries')}
             </span>
           </div>
 
@@ -248,9 +250,9 @@ export default function Home() {
           ) : filteredSessions.length === 0 ? (
             <div className="bg-card rounded-xl border border-border p-8 text-center">
               <FileText className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm">No overtime entries this month</p>
+              <p className="text-muted-foreground text-sm">{t('home.noOvertimeEntries')}</p>
               <p className="text-muted-foreground/70 text-xs mt-1">
-                Tap "Log Extra Time" to add one
+                {t('home.noOvertimeHint')}
               </p>
             </div>
           ) : (
@@ -274,10 +276,10 @@ export default function Home() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Receipt className="w-4 h-4" />
-              Expense Reimbursements
+              {t('home.expenseReimbursements')}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {filteredExpenses.length} {filteredExpenses.length === 1 ? 'entry' : 'entries'}
+              {filteredExpenses.length} {filteredExpenses.length === 1 ? t('home.entry') : t('home.entries')}
               {filteredExpenses.length > 0 && ` · ₪${Math.round(totalExpenses)}`}
             </span>
           </div>
@@ -287,7 +289,7 @@ export default function Home() {
           ) : filteredExpenses.length === 0 ? (
             <div className="bg-card rounded-xl border border-border p-6 text-center">
               <Receipt className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-muted-foreground text-sm">No expenses this month</p>
+              <p className="text-muted-foreground text-sm">{t('home.noExpenses')}</p>
             </div>
           ) : (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">

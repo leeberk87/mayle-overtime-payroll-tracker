@@ -15,10 +15,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDeletion, isAdmin }) {
   const [deletionReason, setDeletionReason] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { t } = useLanguage();
 
   const duration = entry.duration_minutes || 0;
   const hours = Math.floor(duration / 60);
@@ -47,13 +49,13 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDe
                 {entry.start_time} – {entry.end_time}
               </span>
               {entry.status === 'pending' && (
-                <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 px-2 py-0.5 rounded-full font-medium">Pending</span>
+                <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 px-2 py-0.5 rounded-full font-medium">{t('overtimeCard.pending')}</span>
               )}
               {entry.status === 'declined' && (
-                <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-500 px-2 py-0.5 rounded-full font-medium">Declined</span>
+                <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-500 px-2 py-0.5 rounded-full font-medium">{t('overtimeCard.declined')}</span>
               )}
               {entry.deletion_requested && (
-                <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-500 px-2 py-0.5 rounded-full font-medium">Deletion Requested</span>
+                <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-500 px-2 py-0.5 rounded-full font-medium">{t('overtimeCard.deletionRequested')}</span>
               )}
             </div>
 
@@ -98,12 +100,12 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDe
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Entry</AlertDialogTitle>
-                    <AlertDialogDescription>Are you sure you want to delete this overtime entry? This cannot be undone.</AlertDialogDescription>
+                    <AlertDialogTitle>{t('overtimeCard.deleteTitle')}</AlertDialogTitle>
+                    <AlertDialogDescription>{t('overtimeCard.deleteDesc')}</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => onDelete(entry.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+                    <AlertDialogCancel>{t('overtimeCard.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onDelete(entry.id)} className="bg-red-600 hover:bg-red-700">{t('overtimeCard.delete')}</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -116,26 +118,26 @@ export default function OvertimeEntryCard({ entry, onDelete, onEdit, onRequestDe
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Request Deletion</AlertDialogTitle>
+                    <AlertDialogTitle>{t('overtimeCard.requestDeletionTitle')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Please provide a reason for deleting this entry. Your request will be reviewed by the admin.
+                      {t('overtimeCard.requestDeletionDesc')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <Textarea
-                    placeholder="Reason for deletion (e.g. entered by mistake)"
+                    placeholder={t('overtimeCard.deletionReasonPlaceholder')}
                     value={deletionReason}
                     onChange={(e) => setDeletionReason(e.target.value)}
                     rows={3}
                     className="mx-6 mb-2 text-sm"
                   />
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t('overtimeCard.cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleRequestDeletion}
                       disabled={!deletionReason.trim()}
                       className="bg-red-600 hover:bg-red-700"
                     >
-                      Submit Request
+                      {t('overtimeCard.submitRequest')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

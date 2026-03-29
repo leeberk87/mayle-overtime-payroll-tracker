@@ -10,6 +10,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import { CalendarIcon, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TimePicker from './TimePicker';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, isLoading, editingEntry }) {
   const [date, setDate] = useState(new Date());
@@ -18,6 +19,7 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
   const [notes, setNotes] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => {});
@@ -42,10 +44,10 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
 
   const calculateDurationAndPay = () => {
     if (!startTime || !endTime) return { duration: 0, pay: 0 };
-    
+
     const [startH, startM] = startTime.split(':').map(Number);
     const [endH, endM] = endTime.split(':').map(Number);
-    
+
     let totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
     if (totalMinutes < 0) totalMinutes += 24 * 60; // Handle overnight
 
@@ -54,10 +56,10 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
 
     // Round to nearest 15 minutes (FLSA standard)
     const roundedMinutes = Math.round(totalMinutes / 15) * 15;
-    
+
     const hourlyRate = settings?.overtime_rate || 65;
     const pay = Math.round((roundedMinutes / 60) * hourlyRate);
-    
+
     return { duration: roundedMinutes, pay };
   };
 
@@ -67,7 +69,7 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
 
   const handleSubmit = () => {
     const { duration, pay } = calculateDurationAndPay();
-    
+
     const isAdmin = currentUser?.role === 'admin';
     const data = {
       date: format(date, 'yyyy-MM-dd'),
@@ -105,11 +107,11 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
   const isValid = timesEntered && duration > 0;
 
   return (
-    <BottomSheet open={open} onOpenChange={onOpenChange} title={editingEntry ? 'Edit Overtime Entry' : 'Log Extra Time'}>
+    <BottomSheet open={open} onOpenChange={onOpenChange} title={editingEntry ? t('overtimeForm.titleEdit') : t('overtimeForm.titleNew')}>
       <div className="space-y-5">
           {/* Date Picker */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-slate-700">Date</Label>
+            <Label className="text-sm font-medium text-slate-700">{t('overtimeForm.date')}</Label>
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -120,7 +122,7 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "EEEE, MMMM d, yyyy") : "Pick a date"}
+                  {date ? format(date, "EEEE, MMMM d, yyyy") : t('overtimeForm.pickDate')}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -140,23 +142,23 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
               </PopoverContent>
             </Popover>
           </div>
-          
+
           {/* Time Pickers */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700">Start Time</Label>
+              <Label className="text-sm font-medium text-slate-700">{t('overtimeForm.startTime')}</Label>
               <TimePicker value={startTime} onChange={setStartTime} />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700">End Time</Label>
+              <Label className="text-sm font-medium text-slate-700">{t('overtimeForm.endTime')}</Label>
               <TimePicker value={endTime} onChange={setEndTime} />
             </div>
           </div>
-          
+
           {/* Duration warning */}
           {durationWarning && (
             <p className="text-xs text-red-500">
-              Duration is under 8 minutes (rounds to zero) or exceeds 12 hours — please check your times.
+              {t('overtimeForm.durationWarning')}
             </p>
           )}
 
@@ -165,26 +167,26 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
             <div className="bg-secondary rounded-xl p-4 border border-border">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Rounded Duration</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t('overtimeForm.roundedDuration')}</p>
                   <p className="text-lg font-semibold text-foreground">
                     {hours > 0 ? `${hours}h ${mins}m` : `${mins}m`}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground mb-1">Overtime Pay</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t('overtimeForm.overtimePay')}</p>
                   <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-500">+₪{pay}</p>
                 </div>
               </div>
             </div>
           )}
-          
+
           {/* Notes */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-slate-700">Notes (optional)</Label>
+            <Label className="text-sm font-medium text-slate-700">{t('overtimeForm.notes')}</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g., Late pickup, bath time..."
+              placeholder={t('overtimeForm.notesPlaceholder')}
               className="resize-none"
               rows={3}
             />
@@ -192,20 +194,20 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => onOpenChange(false)}
               className="flex-1"
             >
-              Cancel
+              {t('overtimeForm.cancel')}
             </Button>
-            <Button 
+            <Button
               onClick={handleSubmit}
               disabled={!isValid || isLoading}
               className="flex-1"
             >
               <Save className="w-4 h-4 mr-2" />
-              {isLoading ? 'Saving...' : editingEntry ? 'Update' : 'Save'}
+              {isLoading ? t('overtimeForm.saving') : editingEntry ? t('overtimeForm.update') : t('overtimeForm.save')}
             </Button>
           </div>
       </div>
