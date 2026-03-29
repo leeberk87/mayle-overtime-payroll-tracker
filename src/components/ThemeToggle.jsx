@@ -14,15 +14,15 @@ export default function ThemeToggle() {
       className={`relative inline-flex items-center cursor-pointer rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
         isDark ? 'bg-green-500' : 'bg-gray-200'
       }`}
-      style={{ width: 51, height: 31, padding: 2 }}
+      style={{ width: 36, height: 20, padding: 2 }}
     >
       <motion.span
         layout
         transition={{ type: 'spring', stiffness: 700, damping: 35 }}
-        animate={{ x: isDark ? 20 : 0 }}
+        animate={{ x: isDark ? 16 : 0 }}
         initial={false}
         className="block bg-white rounded-full shadow-sm"
-        style={{ width: 27, height: 27 }}
+        style={{ width: 16, height: 16 }}
       />
     </button>
   );
