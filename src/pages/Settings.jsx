@@ -7,9 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Wallet, Bell, Users, ChevronRight, Trash2, Moon } from "lucide-react";
 import AppHeader from '@/components/AppHeader';
-import { Switch } from "@/components/ui/switch";
 import { Link } from 'react-router-dom';
 import { useTheme } from "next-themes";
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -68,10 +68,7 @@ export default function Settings() {
                   <p className="text-xs text-muted-foreground">Switch between light and dark theme</p>
                 </div>
               </div>
-              <Switch
-                checked={resolvedTheme === 'dark'}
-                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-              />
+              <ThemeToggle />
             </CardContent>
           </Card>
         </div>

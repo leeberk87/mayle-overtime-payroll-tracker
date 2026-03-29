@@ -89,6 +89,7 @@
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 200ms ease, color 200ms ease;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     overflow-y: auto;
@@ -118,6 +119,10 @@
   input, textarea, select {
     min-height: 44px;
   }
+}
+
+.bg-card, .bg-background, header, nav, [class*="border-border"] {
+  transition: background-color 200ms ease, border-color 200ms ease;
 }
 
 /* Safe area utility classes for notched/Dynamic Island iPhones */
