@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Save, Wallet, Car, Clock, Info, Home } from "lucide-react";
+import { Save, Wallet, Car, Clock, Info } from "lucide-react";
 import AppHeader from '@/components/AppHeader';
 import { toast } from "sonner";
 import { useLanguage } from '@/lib/LanguageContext';
@@ -15,7 +15,6 @@ export default function SalarySettings() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [accountName, setAccountName] = useState('');
   const [baseSalary, setBaseSalary] = useState(10000);
   const [transport, setTransport] = useState(250);
   const [overtimeRate, setOvertimeRate] = useState(65);
@@ -34,7 +33,6 @@ export default function SalarySettings() {
 
   useEffect(() => {
     if (latestSettings) {
-      setAccountName(latestSettings.account_name || '');
       setBaseSalary(latestSettings.base_salary || 10000);
       setTransport(latestSettings.transport_allowance || 250);
       setOvertimeRate(latestSettings.overtime_rate || 65);
@@ -63,7 +61,7 @@ export default function SalarySettings() {
     if (!salary || salary < 1000 || salary > 100000) { toast.error(t('salary.errorBaseSalary')); return; }
     if (trans < 0 || trans > 5000) { toast.error(t('salary.errorTransport')); return; }
     if (!rate || rate < 1 || rate > 500) { toast.error(t('salary.errorOvertimeRate')); return; }
-    saveMutation.mutate({ effective_from: currentMonth, account_name: accountName.trim(), base_salary: salary, transport_allowance: trans, overtime_rate: rate });
+    saveMutation.mutate({ effective_from: currentMonth, base_salary: salary, transport_allowance: trans, overtime_rate: rate });
   };
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
@@ -74,26 +72,6 @@ export default function SalarySettings() {
       <AppHeader title={t('salary.title')} subtitle={t('salary.subtitle')} backPath="/Settings" />
 
       <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <Card className="border-border shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-secondary rounded-lg"><Home className="w-4 h-4 text-secondary-foreground" /></div>
-              <div>
-                <CardTitle className="text-base">{t('salary.accountNameLabel')}</CardTitle>
-                <CardDescription className="text-xs">{t('salary.accountNameDesc')}</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Input
-              value={accountName}
-              onChange={(e) => setAccountName(e.target.value)}
-              placeholder={t('salary.accountNamePlaceholder')}
-              className="text-base"
-            />
-          </CardContent>
-        </Card>
-
         <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50">
           <CardContent className="p-4">
             <div className="flex gap-3">
