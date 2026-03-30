@@ -14,10 +14,12 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { ThemeProvider } from "next-themes";
 import GlobalEntryModals from '@/components/overtime/GlobalEntryModals';
 
-// Lazy-load admin sub-pages — keeps the initial WebView bundle small
+// Lazy-load admin sub-pages and shared pages — keeps the initial WebView bundle small
 const UserManagement = lazy(() => import('./pages/UserManagement'));
 const SalarySettings = lazy(() => import('./pages/SalarySettings'));
 const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
+const Profile = lazy(() => import('./pages/Profile'));
+const InvitationAccept = lazy(() => import('./pages/InvitationAccept'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -87,6 +89,7 @@ const AuthenticatedApp = () => {
         <Route path="/UserManagement" element={<LayoutWrapper currentPageName="UserManagement"><PageTransition><UserManagement /></PageTransition></LayoutWrapper>} />
         <Route path="/SalarySettings" element={<LayoutWrapper currentPageName="SalarySettings"><PageTransition><SalarySettings /></PageTransition></LayoutWrapper>} />
         <Route path="/NotificationSettings" element={<LayoutWrapper currentPageName="NotificationSettings"><PageTransition><NotificationSettings /></PageTransition></LayoutWrapper>} />
+        <Route path="/Profile" element={<LayoutWrapper currentPageName="Profile"><PageTransition><Profile /></PageTransition></LayoutWrapper>} />
         <Route path="*" element={<PageNotFound />} />
           </Routes>
         </AnimatePresence>
@@ -105,7 +108,14 @@ function App() {
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <Router>
               <NavigationTracker />
-              <AuthenticatedApp />
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* Public route — no auth required */}
+                  <Route path="/join" element={<InvitationAccept />} />
+                  {/* All other routes require authentication */}
+                  <Route path="*" element={<AuthenticatedApp />} />
+                </Routes>
+              </Suspense>
             </Router>
             <Toaster />
           </ThemeProvider>

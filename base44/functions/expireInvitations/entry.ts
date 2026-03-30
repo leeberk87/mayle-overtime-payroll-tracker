@@ -10,7 +10,9 @@ Deno.serve(async (req) => {
 
     let expiredCount = 0;
     for (const inv of pending) {
-      if (inv.expires_at && inv.expires_at < now) {
+      // Email-based invitations use expires_at; link-based ones use token_expires_at
+      const expiryDate = inv.token_expires_at || inv.expires_at;
+      if (expiryDate && expiryDate < now) {
         await base44.asServiceRole.entities.Invitation.update(inv.id, { status: 'expired' });
         expiredCount++;
       }
