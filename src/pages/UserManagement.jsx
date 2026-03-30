@@ -144,7 +144,13 @@ export default function UserManagement() {
     if (!generatedLink) return;
     const shareData = { title: 'Work tracker invitation', url: generatedLink };
     if (navigator.share && navigator.canShare?.(shareData)) {
-      await navigator.share(shareData);
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          handleCopyLink();
+        }
+      }
     } else {
       handleCopyLink();
     }
@@ -157,6 +163,32 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
     } catch {
       toast.error(t('userManagement.toastInviteError'));
+    }
+  };
+
+  const copyExistingLink = async (token) => {
+    const link = `${window.location.origin}/join?token=${token}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success(t('userManagement.linkCopied'));
+    } catch {
+      toast.success(link);
+    }
+  };
+
+  const shareExistingLink = async (token) => {
+    const link = `${window.location.origin}/join?token=${token}`;
+    const shareData = { title: 'Work tracker invitation', url: link };
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          copyExistingLink(token);
+        }
+      }
+    } else {
+      copyExistingLink(token);
     }
   };
 
@@ -327,16 +359,36 @@ export default function UserManagement() {
                           }
                         </p>
                       </div>
-                      {/* Revoke pending link invites */}
+                      {/* Pending link actions */}
                       {isLink && isPending && !isClaimed && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-muted-foreground hover:text-red-500 flex-shrink-0"
-                          onClick={() => handleRevokeLink(inv.id)}
-                        >
-                          {t('userManagement.revokeLink')}
-                        </Button>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => copyExistingLink(inv.token)}
+                            title={t('userManagement.copyLink')}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => shareExistingLink(inv.token)}
+                            title={t('userManagement.shareLink')}
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-muted-foreground hover:text-red-500 px-2"
+                            onClick={() => handleRevokeLink(inv.id)}
+                          >
+                            {t('userManagement.revokeLink')}
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
