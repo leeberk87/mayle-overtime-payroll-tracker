@@ -6,9 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Wallet, Bell, Users, ChevronRight, Trash2, Moon, Globe } from "lucide-react";
 import AppHeader from '@/components/AppHeader';
-import { Switch } from "@/components/ui/switch";
 import { Link } from 'react-router-dom';
-import { useTheme } from "next-themes";
+import ThemeToggle from '@/components/ThemeToggle';
 import { useLanguage } from '@/lib/LanguageContext';
 
 const LANGUAGES = [
@@ -20,7 +19,6 @@ const LANGUAGES = [
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { resolvedTheme, setTheme } = useTheme();
   const { lang, setLanguage, t } = useLanguage();
 
   useEffect(() => {
@@ -82,10 +80,7 @@ export default function Settings() {
                   <p className="text-xs text-muted-foreground">{t('settings.darkModeDesc')}</p>
                 </div>
               </div>
-              <Switch
-                checked={resolvedTheme === 'dark'}
-                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-              />
+              <ThemeToggle />
             </CardContent>
           </Card>
         </div>
