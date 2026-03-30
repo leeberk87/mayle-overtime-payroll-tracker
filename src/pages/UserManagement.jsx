@@ -10,6 +10,7 @@ import BottomSheetSelect from '@/components/ui/BottomSheetSelect';
 import { Users, UserPlus, Trash2, Shield, User, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function UserManagement() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -18,6 +19,7 @@ export default function UserManagement() {
   const [inviteRole, setInviteRole] = useState('user');
   const [inviting, setInviting] = useState(false);
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => {});
@@ -43,18 +45,18 @@ export default function UserManagement() {
     mutationFn: ({ id, role }) => base44.entities.User.update(id, { role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Role updated');
+      toast.success(t('userManagement.toastRoleUpdated'));
     },
-    onError: () => toast.error('Failed to update role'),
+    onError: () => toast.error(t('userManagement.toastRoleError')),
   });
 
   const deleteUserMutation = useMutation({
     mutationFn: (id) => base44.entities.User.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('User removed');
+      toast.success(t('userManagement.toastUserRemoved'));
     },
-    onError: () => toast.error('Failed to remove user'),
+    onError: () => toast.error(t('userManagement.toastUserRemoveError')),
   });
 
   const handleInvite = async () => {
@@ -72,14 +74,14 @@ export default function UserManagement() {
         expires_at: expiresAt.toISOString(),
         invited_by: currentUser?.email,
       });
-      toast.success(`Invitation sent to ${inviteEmail}`);
+      toast.success(t('userManagement.toastInviteSent', { email: inviteEmail }));
       setInviteEmail('');
       setInviteRole('user');
       setInviteOpen(false);
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
     } catch {
-      toast.error('Failed to send invitation');
+      toast.error(t('userManagement.toastInviteError'));
     } finally {
       setInviting(false);
     }
@@ -93,16 +95,24 @@ export default function UserManagement() {
     );
   }
 
+  const roleOptions = [
+    { value: 'user', label: t('userManagement.roleUser') },
+    { value: 'admin', label: t('userManagement.roleAdmin') },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader
-        title="User Management"
-        subtitle={`${users.length} ${users.length === 1 ? 'user' : 'users'} total`}
+        title={t('userManagement.title')}
+        subtitle={t('userManagement.subtitle', {
+          count: users.length,
+          user: users.length === 1 ? t('userManagement.user') : t('userManagement.users'),
+        })}
         backPath="/Settings"
         rightContent={
           <Button onClick={() => setInviteOpen(true)} className="gap-2">
             <UserPlus className="w-4 h-4" />
-            Invite
+            {t('userManagement.invite')}
           </Button>
         }
       />
@@ -111,7 +121,7 @@ export default function UserManagement() {
 
         {/* Active Users */}
         <div>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Active Users</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('userManagement.activeUsers')}</h2>
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map(i => (
@@ -121,7 +131,7 @@ export default function UserManagement() {
           ) : users.length === 0 ? (
             <div className="bg-card rounded-xl border border-border p-10 text-center">
               <Users className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm">No users yet</p>
+              <p className="text-muted-foreground text-sm">{t('userManagement.noUsers')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -143,8 +153,8 @@ export default function UserManagement() {
                       value={user.role || 'user'}
                       onValueChange={(role) => updateRoleMutation.mutate({ id: user.id, role })}
                       disabled={user.id === currentUser?.id}
-                      options={[{ value: 'user', label: 'User' }, { value: 'admin', label: 'Admin' }]}
-                      title="Change Role"
+                      options={roleOptions}
+                      title={t('userManagement.changeRole')}
                       triggerClassName="h-9 w-24 text-xs"
                     />
 
@@ -157,14 +167,14 @@ export default function UserManagement() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Remove User?</AlertDialogTitle>
+                            <AlertDialogTitle>{t('userManagement.removeUserTitle')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This will permanently remove <strong>{user.full_name || user.email}</strong> from the app.
+                              {t('userManagement.removeUserDesc', { name: user.full_name || user.email })}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteUserMutation.mutate(user.id)} className="bg-red-500 hover:bg-red-600">Remove</AlertDialogAction>
+                            <AlertDialogCancel>{t('userManagement.cancel')}</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteUserMutation.mutate(user.id)} className="bg-red-500 hover:bg-red-600">{t('userManagement.remove')}</AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
@@ -179,7 +189,7 @@ export default function UserManagement() {
         {/* Invitations */}
         {enrichedInvitations.length > 0 && (
           <div>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Invitations</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t('userManagement.invitations')}</h2>
             <div className="space-y-3">
               {enrichedInvitations.map(inv => {
                 const isPending = inv.status === 'pending';
@@ -221,32 +231,32 @@ export default function UserManagement() {
       </div>
 
       {/* Invite Bottom Sheet */}
-      <BottomSheet open={inviteOpen} onOpenChange={setInviteOpen} title="Invite User">
+      <BottomSheet open={inviteOpen} onOpenChange={setInviteOpen} title={t('userManagement.inviteSheetTitle')}>
         <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Email address</label>
+              <label className="text-sm font-medium text-foreground mb-1 block">{t('userManagement.emailLabel')}</label>
               <Input
                 type="email"
-                placeholder="user@example.com"
+                placeholder={t('userManagement.emailPlaceholder')}
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Role</label>
+              <label className="text-sm font-medium text-foreground mb-1 block">{t('userManagement.roleLabel')}</label>
               <BottomSheetSelect
                 value={inviteRole}
                 onValueChange={setInviteRole}
-                options={[{ value: 'user', label: 'User' }, { value: 'admin', label: 'Admin' }]}
-                title="Select Role"
+                options={roleOptions}
+                title={t('userManagement.selectRole')}
               />
             </div>
-            <p className="text-xs text-muted-foreground">Invitations expire after 7 days.</p>
+            <p className="text-xs text-muted-foreground">{t('userManagement.inviteExpiry')}</p>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setInviteOpen(false)} className="flex-1">Cancel</Button>
+              <Button variant="outline" onClick={() => setInviteOpen(false)} className="flex-1">{t('userManagement.cancel')}</Button>
               <Button onClick={handleInvite} disabled={inviting || !inviteEmail.trim()} className="flex-1">
-                {inviting ? 'Sending...' : 'Send Invitation'}
+                {inviting ? t('userManagement.sending') : t('userManagement.sendInvitation')}
               </Button>
             </div>
         </div>

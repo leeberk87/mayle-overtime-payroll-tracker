@@ -7,12 +7,14 @@ import { Bell } from "lucide-react";
 import AppHeader from '@/components/AppHeader';
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function NotificationSettings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notifEmail, setNotifEmail] = useState(true);
   const [notifInApp, setNotifInApp] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     base44.auth.me()
@@ -30,7 +32,7 @@ export default function NotificationSettings() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader title="Notifications" subtitle="Manage how you receive alerts" backPath="/Settings" />
+      <AppHeader title={t('notificationSettings.title')} subtitle={t('notificationSettings.subtitle')} backPath="/Settings" />
 
       <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6">
         <Card className="border-border shadow-sm">
@@ -38,37 +40,37 @@ export default function NotificationSettings() {
             <div className="flex items-center gap-2">
               <div className="p-2 bg-secondary rounded-lg"><Bell className="w-4 h-4 text-secondary-foreground" /></div>
               <div>
-                <CardTitle className="text-base">Notification Preferences</CardTitle>
-                <CardDescription className="text-xs">Choose how you receive alerts</CardDescription>
+                <CardTitle className="text-base">{t('notificationSettings.cardTitle')}</CardTitle>
+                <CardDescription className="text-xs">{t('notificationSettings.cardDesc')}</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-foreground">Email notifications</p>
-                <p className="text-xs text-muted-foreground">Get emailed on new submissions & reviews</p>
+                <p className="text-sm font-medium text-foreground">{t('notificationSettings.emailLabel')}</p>
+                <p className="text-xs text-muted-foreground">{t('notificationSettings.emailDesc')}</p>
               </div>
               <Switch
                 checked={notifEmail}
                 onCheckedChange={async (v) => {
                   setNotifEmail(v);
                   await base44.auth.updateMe({ notification_email: v });
-                  toast.success('Preference saved');
+                  toast.success(t('notificationSettings.toastSaved'));
                 }}
               />
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-foreground">In-app notifications</p>
-                <p className="text-xs text-muted-foreground">Bell icon alerts inside the app</p>
+                <p className="text-sm font-medium text-foreground">{t('notificationSettings.inAppLabel')}</p>
+                <p className="text-xs text-muted-foreground">{t('notificationSettings.inAppDesc')}</p>
               </div>
               <Switch
                 checked={notifInApp}
                 onCheckedChange={async (v) => {
                   setNotifInApp(v);
                   await base44.auth.updateMe({ notification_in_app: v });
-                  toast.success('Preference saved');
+                  toast.success(t('notificationSettings.toastSaved'));
                 }}
               />
             </div>

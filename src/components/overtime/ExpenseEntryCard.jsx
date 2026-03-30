@@ -4,10 +4,12 @@ import { Receipt, Pencil, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDeletion, isAdmin }) {
   const [deletionReason, setDeletionReason] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { t } = useLanguage();
 
   const dateStr = entry.date?.split('T')[0] || entry.date;
   const [year, month, day] = (dateStr || '').split('-').map(Number);
@@ -30,13 +32,13 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDel
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <p className="text-xs text-muted-foreground">{format(parsedDate, 'EEE, MMM d')}</p>
             {entry.status === 'pending' && (
-              <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 px-2 py-0.5 rounded-full font-medium">Pending</span>
+              <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 px-2 py-0.5 rounded-full font-medium">{t('expenseCard.pending')}</span>
             )}
             {entry.status === 'declined' && (
-              <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-500 px-2 py-0.5 rounded-full font-medium">Declined</span>
+              <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-500 px-2 py-0.5 rounded-full font-medium">{t('expenseCard.declined')}</span>
             )}
             {entry.deletion_requested && (
-              <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-500 px-2 py-0.5 rounded-full font-medium">Deletion Requested</span>
+              <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-500 px-2 py-0.5 rounded-full font-medium">{t('expenseCard.deletionRequested')}</span>
             )}
           </div>
         </div>
@@ -62,12 +64,12 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDel
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Expense?</AlertDialogTitle>
-                <AlertDialogDescription>This will permanently remove this expense entry.</AlertDialogDescription>
+                <AlertDialogTitle>{t('expenseCard.deleteTitle')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('expenseCard.deleteDesc')}</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => onDelete(entry.id)} className="bg-red-500 hover:bg-red-600">Delete</AlertDialogAction>
+                <AlertDialogCancel>{t('expenseCard.cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => onDelete(entry.id)} className="bg-red-500 hover:bg-red-600">{t('expenseCard.delete')}</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -80,26 +82,26 @@ export default function ExpenseEntryCard({ entry, onDelete, onEdit, onRequestDel
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Request Deletion</AlertDialogTitle>
+                <AlertDialogTitle>{t('expenseCard.requestDeletionTitle')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Please provide a reason for deleting this expense. Your request will be reviewed by the admin.
+                  {t('expenseCard.requestDeletionDesc')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <Textarea
-                placeholder="Reason for deletion (e.g. entered by mistake)"
+                placeholder={t('expenseCard.deletionReasonPlaceholder')}
                 value={deletionReason}
                 onChange={(e) => setDeletionReason(e.target.value)}
                 rows={3}
                 className="mx-6 mb-2 text-sm"
               />
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('expenseCard.cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleRequestDeletion}
                   disabled={!deletionReason.trim()}
                   className="bg-red-500 hover:bg-red-600"
                 >
-                  Submit Request
+                  {t('expenseCard.submitRequest')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

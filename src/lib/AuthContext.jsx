@@ -32,6 +32,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = async (data) => {
+    const updated = await base44.auth.updateMe(data);
+    setUser(prev => ({ ...prev, ...data, ...updated }));
+    return updated;
+  };
+
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
@@ -51,6 +57,7 @@ export const AuthProvider = ({ children }) => {
       isLoadingPublicSettings,
       authError,
       appPublicSettings: null,
+      updateUser,
       logout,
       navigateToLogin,
       checkAppState: checkAuth

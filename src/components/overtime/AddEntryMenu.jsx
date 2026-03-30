@@ -1,10 +1,13 @@
 import React from 'react';
 import { Clock, Receipt } from 'lucide-react';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function AddEntryMenu({ onSelectOvertme, onSelectExpense, onClose }) {
+  const { t } = useLanguage();
+
   return (
-    <BottomSheet open={true} onOpenChange={(v) => { if (!v) onClose(); }} title="What would you like to add?">
+    <BottomSheet open={true} onOpenChange={(v) => { if (!v) onClose(); }} title={t('addMenu.title')}>
       <div className="space-y-2 pb-2">
         <button
           onClick={onSelectOvertme}
@@ -14,8 +17,8 @@ export default function AddEntryMenu({ onSelectOvertme, onSelectExpense, onClose
             <Clock className="w-5 h-5 text-secondary-foreground" />
           </div>
           <div>
-            <p className="font-semibold text-foreground">Extra Work Hours</p>
-            <p className="text-sm text-muted-foreground">Log overtime hours worked</p>
+            <p className="font-semibold text-foreground">{t('addMenu.overtimeLabel')}</p>
+            <p className="text-sm text-muted-foreground">{t('addMenu.overtimeDesc')}</p>
           </div>
         </button>
 
@@ -27,8 +30,8 @@ export default function AddEntryMenu({ onSelectOvertme, onSelectExpense, onClose
             <Receipt className="w-5 h-5 text-amber-600 dark:text-amber-500" />
           </div>
           <div>
-            <p className="font-semibold text-foreground">Expense Reimbursement</p>
-            <p className="text-sm text-muted-foreground">Log money spent on the kids</p>
+            <p className="font-semibold text-foreground">{t('addMenu.expenseLabel')}</p>
+            <p className="text-sm text-muted-foreground">{t('addMenu.expenseDesc')}</p>
           </div>
         </button>
       </div>

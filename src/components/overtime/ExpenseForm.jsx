@@ -9,12 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, editingEntry }) {
   const [date, setDate] = useState(new Date());
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => {});
@@ -63,11 +65,11 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
   const isValid = description.trim() && Number(amount) > 0 && !!currentUser;
 
   return (
-    <BottomSheet open={open} onOpenChange={onOpenChange} title={editingEntry ? 'Edit Expense' : 'Add Expense'}>
+    <BottomSheet open={open} onOpenChange={onOpenChange} title={editingEntry ? t('expenseForm.titleEdit') : t('expenseForm.titleNew')}>
       <div className="space-y-4">
           {/* Date */}
           <div className="space-y-1">
-            <Label>Date</Label>
+            <Label>{t('expenseForm.date')}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal">
@@ -92,9 +94,9 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
 
           {/* Description */}
           <div className="space-y-1">
-            <Label>Description</Label>
+            <Label>{t('expenseForm.description')}</Label>
             <Textarea
-              placeholder="e.g. Lunch at the park, swimming pool entry..."
+              placeholder={t('expenseForm.descriptionPlaceholder')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
@@ -103,7 +105,7 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
 
           {/* Amount */}
           <div className="space-y-1">
-            <Label>Amount</Label>
+            <Label>{t('expenseForm.amount')}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">₪</span>
               <Input
@@ -121,7 +123,7 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
             disabled={!isValid || isLoading}
             className="w-full bg-amber-600 hover:bg-amber-700 py-5"
           >
-            {isLoading ? 'Saving...' : editingEntry ? 'Update Expense' : 'Save Expense'}
+            {isLoading ? t('expenseForm.saving') : editingEntry ? t('expenseForm.update') : t('expenseForm.save')}
           </Button>
       </div>
     </BottomSheet>
