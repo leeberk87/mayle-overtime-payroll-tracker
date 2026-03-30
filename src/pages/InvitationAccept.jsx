@@ -10,6 +10,8 @@ export const PENDING_TOKEN_KEY = 'pending_invite_token';
 export default function InvitationAccept() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  // Name is passed as a URL param — cosmetic only, used for the "Hi Maya," greeting
+  const nameFromUrl = searchParams.get('name') || null;
 
   const [state, setState] = useState('loading'); // loading | valid | invalid | email_sent | google_redirect
   const [inviteData, setInviteData] = useState(null);
@@ -143,7 +145,9 @@ export default function InvitationAccept() {
   }
 
   // ── Valid invitation landing page ─────────────────────────────────────────
-  const { display_name, invited_name } = inviteData || {};
+  const { display_name } = inviteData || {};
+  // invited_name comes from the URL ?name= param (set by admin when generating the link)
+  const invited_name = nameFromUrl;
   const avatarLetter = display_name ? display_name.trim().charAt(0).toUpperCase() : '?';
 
   return (

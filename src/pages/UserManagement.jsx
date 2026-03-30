@@ -50,7 +50,8 @@ export default function UserManagement() {
   const userEmails = new Set(users.map(u => u.email));
   const enrichedInvitations = invitations.map(inv => ({
     ...inv,
-    status: inv.status === 'pending' && (userEmails.has(inv.email) || userEmails.has(inv.claimed_by_email))
+    // For email-based invites only: mark as accepted if a user with that email exists
+    status: inv.status === 'pending' && inv.email?.includes('@') && userEmails.has(inv.email)
       ? 'accepted'
       : inv.status,
   }));
@@ -109,17 +110,19 @@ export default function UserManagement() {
       const token = crypto.randomUUID();
       const now = new Date();
       const expiresAt = new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48 hours
+      // Store token in the email field (link invites have no email address).
+      // Use expires_at for the 48h expiry. The employee's name goes in the URL
+      // as a cosmetic param — no security risk since it's display-only.
       await base44.entities.Invitation.create({
-        token,
-        token_expires_at: expiresAt.toISOString(),
-        invited_name: linkName.trim() || null,
+        email: token,
         role: 'user',
         status: 'pending',
         sent_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
         invited_by: currentUser?.email,
-        link_based: true,
       });
-      const link = `${window.location.origin}/join?token=${token}`;
+      const nameParam = linkName.trim() ? `&name=${encodeURIComponent(linkName.trim())}` : '';
+      const link = `${window.location.origin}/join?token=${token}${nameParam}`;
       setGeneratedLink(link);
       toast.success(t('userManagement.toastLinkCreated'));
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
@@ -306,12 +309,11 @@ export default function UserManagement() {
               {enrichedInvitations.map(inv => {
                 const isPending = inv.status === 'pending';
                 const isAccepted = inv.status === 'accepted';
-                const expiresDate = inv.token_expires_at
-                  ? new Date(inv.token_expires_at)
-                  : inv.expires_at ? new Date(inv.expires_at) : null;
+                const expiresDate = inv.expires_at ? new Date(inv.expires_at) : null;
                 const sentDate = inv.sent_at ? new Date(inv.sent_at) : null;
-                const isLink = inv.link_based;
-                const isClaimed = !!inv.claimed_at && isPending;
+                // Link-based invites store a UUID in the email field — no '@' sign
+                const isLink = inv.email && !inv.email.includes('@');
+                const isClaimed = false; // status goes straight to 'accepted' when claimed
 
                 return (
                   <div key={inv.id} className={`bg-card rounded-xl border p-4 shadow-sm ${
@@ -335,9 +337,7 @@ export default function UserManagement() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium text-foreground text-sm truncate">
-                            {isLink
-                              ? (inv.invited_name || (inv.claimed_by_email || 'Invite link'))
-                              : inv.email}
+                            {isLink ? 'Invite link' : inv.email}
                           </p>
                           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
                             isAccepted ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-500'
@@ -351,10 +351,8 @@ export default function UserManagement() {
                           {!isLink && <span className="text-[10px] text-muted-foreground capitalize">{inv.role}</span>}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {isLink && isPending && !isClaimed && expiresDate
+                          {isLink && isPending && expiresDate
                             ? `Expires ${format(expiresDate, 'MMM d, h:mm a')}`
-                            : isClaimed
-                            ? `Claimed · awaiting sign-up`
                             : `Sent ${sentDate ? formatDistanceToNow(sentDate, { addSuffix: true }) : '—'}${isPending && expiresDate ? ` · expires ${format(expiresDate, 'MMM d')}` : ''}`
                           }
                         </p>
