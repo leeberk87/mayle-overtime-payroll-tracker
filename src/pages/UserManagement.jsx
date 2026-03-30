@@ -7,17 +7,29 @@ import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import BottomSheetSelect from '@/components/ui/BottomSheetSelect';
-import { Users, UserPlus, Trash2, Shield, User, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Users, UserPlus, Trash2, Shield, User, Clock, CheckCircle, XCircle, Link2, Copy, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useLanguage } from '@/lib/LanguageContext';
 
+const INVITE_TAB_EMAIL = 'email';
+const INVITE_TAB_LINK = 'link';
+
 export default function UserManagement() {
   const [currentUser, setCurrentUser] = useState(null);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteTab, setInviteTab] = useState(INVITE_TAB_LINK);
+
+  // Email tab state
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('user');
   const [inviting, setInviting] = useState(false);
+
+  // Link tab state
+  const [linkName, setLinkName] = useState('');
+  const [generatedLink, setGeneratedLink] = useState(null);
+  const [generatingLink, setGeneratingLink] = useState(false);
+
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
@@ -38,7 +50,9 @@ export default function UserManagement() {
   const userEmails = new Set(users.map(u => u.email));
   const enrichedInvitations = invitations.map(inv => ({
     ...inv,
-    status: inv.status === 'pending' && userEmails.has(inv.email) ? 'accepted' : inv.status,
+    status: inv.status === 'pending' && (userEmails.has(inv.email) || userEmails.has(inv.claimed_by_email))
+      ? 'accepted'
+      : inv.status,
   }));
 
   const updateRoleMutation = useMutation({
@@ -59,7 +73,8 @@ export default function UserManagement() {
     onError: () => toast.error(t('userManagement.toastUserRemoveError')),
   });
 
-  const handleInvite = async () => {
+  // ── Email invite ──────────────────────────────────────────────────────────
+  const handleEmailInvite = async () => {
     if (!inviteEmail.trim()) return;
     setInviting(true);
     try {
@@ -73,18 +88,84 @@ export default function UserManagement() {
         sent_at: now.toISOString(),
         expires_at: expiresAt.toISOString(),
         invited_by: currentUser?.email,
+        link_based: false,
       });
       toast.success(t('userManagement.toastInviteSent', { email: inviteEmail }));
       setInviteEmail('');
       setInviteRole('user');
       setInviteOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
     } catch {
       toast.error(t('userManagement.toastInviteError'));
     } finally {
       setInviting(false);
     }
+  };
+
+  // ── Link invite ───────────────────────────────────────────────────────────
+  const handleGenerateLink = async () => {
+    setGeneratingLink(true);
+    try {
+      const token = crypto.randomUUID();
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48 hours
+      await base44.entities.Invitation.create({
+        token,
+        token_expires_at: expiresAt.toISOString(),
+        invited_name: linkName.trim() || null,
+        role: 'user',
+        status: 'pending',
+        sent_at: now.toISOString(),
+        invited_by: currentUser?.email,
+        link_based: true,
+      });
+      const link = `${window.location.origin}/join?token=${token}`;
+      setGeneratedLink(link);
+      toast.success(t('userManagement.toastLinkCreated'));
+      queryClient.invalidateQueries({ queryKey: ['invitations'] });
+    } catch {
+      toast.error(t('userManagement.toastLinkError'));
+    } finally {
+      setGeneratingLink(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!generatedLink) return;
+    try {
+      await navigator.clipboard.writeText(generatedLink);
+      toast.success(t('userManagement.linkCopied'));
+    } catch {
+      toast.success(generatedLink);
+    }
+  };
+
+  const handleShareLink = async () => {
+    if (!generatedLink) return;
+    const shareData = { title: 'Work tracker invitation', url: generatedLink };
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      await navigator.share(shareData);
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const handleRevokeLink = async (invitationId) => {
+    try {
+      await base44.entities.Invitation.update(invitationId, { status: 'expired' });
+      toast.success(t('userManagement.toastLinkRevoked'));
+      queryClient.invalidateQueries({ queryKey: ['invitations'] });
+    } catch {
+      toast.error(t('userManagement.toastInviteError'));
+    }
+  };
+
+  const handleCloseSheet = () => {
+    setInviteOpen(false);
+    setInviteEmail('');
+    setInviteRole('user');
+    setLinkName('');
+    setGeneratedLink(null);
   };
 
   if (currentUser?.role !== 'admin') {
@@ -157,7 +238,6 @@ export default function UserManagement() {
                       title={t('userManagement.changeRole')}
                       triggerClassName="h-9 w-24 text-xs"
                     />
-
                     {user.id !== currentUser?.id && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -194,33 +274,70 @@ export default function UserManagement() {
               {enrichedInvitations.map(inv => {
                 const isPending = inv.status === 'pending';
                 const isAccepted = inv.status === 'accepted';
-                const expiresDate = inv.expires_at ? new Date(inv.expires_at) : null;
+                const expiresDate = inv.token_expires_at
+                  ? new Date(inv.token_expires_at)
+                  : inv.expires_at ? new Date(inv.expires_at) : null;
                 const sentDate = inv.sent_at ? new Date(inv.sent_at) : null;
+                const isLink = inv.link_based;
+                const isClaimed = !!inv.claimed_at && isPending;
+
                 return (
-                  <div key={inv.id} className={`bg-card rounded-xl border p-4 flex items-center gap-3 shadow-sm ${
-                    isAccepted ? 'border-emerald-100 dark:border-emerald-900/30' : inv.status === 'expired' ? 'border-border opacity-60' : 'border-amber-100 dark:border-amber-900/30'
+                  <div key={inv.id} className={`bg-card rounded-xl border p-4 shadow-sm ${
+                    isAccepted ? 'border-emerald-100 dark:border-emerald-900/30'
+                    : inv.status === 'expired' ? 'border-border opacity-60'
+                    : isClaimed ? 'border-blue-100 dark:border-blue-900/30'
+                    : 'border-amber-100 dark:border-amber-900/30'
                   }`}>
-                    <div className={`p-2 rounded-full flex-shrink-0 ${
-                      isAccepted ? 'bg-emerald-50 dark:bg-emerald-950/30' : inv.status === 'expired' ? 'bg-secondary' : 'bg-amber-50 dark:bg-amber-950/30'
-                    }`}>
-                      {isAccepted ? <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-500" /> :
-                       inv.status === 'expired' ? <XCircle className="w-4 h-4 text-muted-foreground" /> :
-                       <Clock className="w-4 h-4 text-amber-600 dark:text-amber-500" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-foreground text-sm truncate">{inv.email}</p>
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                          isAccepted ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-500' :
-                          inv.status === 'expired' ? 'bg-secondary text-secondary-foreground' :
-                          'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500'
-                        }`}>{inv.status}</span>
-                        <span className="text-[10px] text-muted-foreground capitalize">{inv.role}</span>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-full flex-shrink-0 ${
+                        isAccepted ? 'bg-emerald-50 dark:bg-emerald-950/30'
+                        : inv.status === 'expired' ? 'bg-secondary'
+                        : isClaimed ? 'bg-blue-50 dark:bg-blue-950/30'
+                        : 'bg-amber-50 dark:bg-amber-950/30'
+                      }`}>
+                        {isAccepted ? <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-500" />
+                          : inv.status === 'expired' ? <XCircle className="w-4 h-4 text-muted-foreground" />
+                          : isLink ? <Link2 className={`w-4 h-4 ${isClaimed ? 'text-blue-600 dark:text-blue-500' : 'text-amber-600 dark:text-amber-500'}`} />
+                          : <Clock className="w-4 h-4 text-amber-600 dark:text-amber-500" />}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Sent {sentDate ? formatDistanceToNow(sentDate, { addSuffix: true }) : '—'}
-                        {isPending && expiresDate && ` · expires ${format(expiresDate, 'MMM d')}`}
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium text-foreground text-sm truncate">
+                            {isLink
+                              ? (inv.invited_name || (inv.claimed_by_email || 'Invite link'))
+                              : inv.email}
+                          </p>
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                            isAccepted ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-500'
+                            : inv.status === 'expired' ? 'bg-secondary text-secondary-foreground'
+                            : isClaimed ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-500'
+                            : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500'
+                          }`}>
+                            {isClaimed ? 'claimed' : inv.status}
+                          </span>
+                          {isLink && <span className="text-[10px] text-muted-foreground">link</span>}
+                          {!isLink && <span className="text-[10px] text-muted-foreground capitalize">{inv.role}</span>}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {isLink && isPending && !isClaimed && expiresDate
+                            ? `Expires ${format(expiresDate, 'MMM d, h:mm a')}`
+                            : isClaimed
+                            ? `Claimed · awaiting sign-up`
+                            : `Sent ${sentDate ? formatDistanceToNow(sentDate, { addSuffix: true }) : '—'}${isPending && expiresDate ? ` · expires ${format(expiresDate, 'MMM d')}` : ''}`
+                          }
+                        </p>
+                      </div>
+                      {/* Revoke pending link invites */}
+                      {isLink && isPending && !isClaimed && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-muted-foreground hover:text-red-500 flex-shrink-0"
+                          onClick={() => handleRevokeLink(inv.id)}
+                        >
+                          {t('userManagement.revokeLink')}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
@@ -231,34 +348,112 @@ export default function UserManagement() {
       </div>
 
       {/* Invite Bottom Sheet */}
-      <BottomSheet open={inviteOpen} onOpenChange={setInviteOpen} title={t('userManagement.inviteSheetTitle')}>
+      <BottomSheet open={inviteOpen} onOpenChange={handleCloseSheet} title={t('userManagement.inviteSheetTitle')}>
         <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">{t('userManagement.emailLabel')}</label>
-              <Input
-                type="email"
-                placeholder={t('userManagement.emailPlaceholder')}
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">{t('userManagement.roleLabel')}</label>
-              <BottomSheetSelect
-                value={inviteRole}
-                onValueChange={setInviteRole}
-                options={roleOptions}
-                title={t('userManagement.selectRole')}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">{t('userManagement.inviteExpiry')}</p>
-            <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setInviteOpen(false)} className="flex-1">{t('userManagement.cancel')}</Button>
-              <Button onClick={handleInvite} disabled={inviting || !inviteEmail.trim()} className="flex-1">
-                {inviting ? t('userManagement.sending') : t('userManagement.sendInvitation')}
-              </Button>
-            </div>
+
+          {/* Tab switcher */}
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            <button
+              onClick={() => setInviteTab(INVITE_TAB_LINK)}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                inviteTab === INVITE_TAB_LINK
+                  ? 'bg-foreground text-background'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t('userManagement.tabLink')}
+            </button>
+            <button
+              onClick={() => setInviteTab(INVITE_TAB_EMAIL)}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                inviteTab === INVITE_TAB_EMAIL
+                  ? 'bg-foreground text-background'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t('userManagement.tabEmail')}
+            </button>
+          </div>
+
+          {/* ── Share Link tab ────────────────────────────────────────── */}
+          {inviteTab === INVITE_TAB_LINK && (
+            <>
+              {!generatedLink ? (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-1 block">{t('userManagement.linkNameLabel')}</label>
+                    <Input
+                      placeholder={t('userManagement.linkNamePlaceholder')}
+                      value={linkName}
+                      onChange={(e) => setLinkName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleGenerateLink()}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t('userManagement.linkExpiry')}</p>
+                  <div className="flex gap-3 pt-2">
+                    <Button variant="outline" onClick={handleCloseSheet} className="flex-1">{t('userManagement.cancel')}</Button>
+                    <Button onClick={handleGenerateLink} disabled={generatingLink} className="flex-1">
+                      {generatingLink ? t('userManagement.generating') : t('userManagement.generateLink')}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-1 block">{t('userManagement.linkLabel')}</label>
+                    <div className="flex items-center gap-2 p-3 bg-secondary rounded-lg border border-border">
+                      <p className="text-xs text-muted-foreground flex-1 break-all font-mono">{generatedLink}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleCopyLink} className="flex-1 gap-2">
+                      <Copy className="w-4 h-4" />
+                      {t('userManagement.copyLink')}
+                    </Button>
+                    <Button onClick={handleShareLink} className="flex-1 gap-2">
+                      <Share2 className="w-4 h-4" />
+                      {t('userManagement.shareLink')}
+                    </Button>
+                  </div>
+                  <Button variant="ghost" onClick={handleCloseSheet} className="w-full text-muted-foreground">
+                    {t('userManagement.cancel')}
+                  </Button>
+                </>
+              )}
+            </>
+          )}
+
+          {/* ── Email tab ─────────────────────────────────────────────── */}
+          {inviteTab === INVITE_TAB_EMAIL && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">{t('userManagement.emailLabel')}</label>
+                <Input
+                  type="email"
+                  placeholder={t('userManagement.emailPlaceholder')}
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleEmailInvite()}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">{t('userManagement.roleLabel')}</label>
+                <BottomSheetSelect
+                  value={inviteRole}
+                  onValueChange={setInviteRole}
+                  options={roleOptions}
+                  title={t('userManagement.selectRole')}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">{t('userManagement.inviteExpiry')}</p>
+              <div className="flex gap-3 pt-2">
+                <Button variant="outline" onClick={handleCloseSheet} className="flex-1">{t('userManagement.cancel')}</Button>
+                <Button onClick={handleEmailInvite} disabled={inviting || !inviteEmail.trim()} className="flex-1">
+                  {inviting ? t('userManagement.sending') : t('userManagement.sendInvitation')}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </BottomSheet>
     </div>

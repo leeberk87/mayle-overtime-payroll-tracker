@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Wallet, Bell, Users, ChevronRight, Trash2, Moon, Globe } from "lucide-react";
+import { Wallet, Bell, Users, ChevronRight, Trash2, Moon, Globe, UserCircle } from "lucide-react";
 import AppHeader from '@/components/AppHeader';
 import { Link } from 'react-router-dom';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -35,6 +35,7 @@ export default function Settings() {
     { label: t('settings.userManagement'), description: t('settings.userManagementDesc'), icon: Users, path: '/UserManagement' },
   ];
 
+
   const handleDeleteAccount = async () => {
     await base44.entities.User.delete(user.id);
     base44.auth.logout('/');
@@ -49,6 +50,22 @@ export default function Settings() {
       />
 
       <div className="max-w-lg lg:max-w-2xl mx-auto px-4 py-6 space-y-3">
+
+        {/* Profile — visible to all users */}
+        <Link to="/Profile">
+          <Card className="border-border shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-secondary rounded-lg"><UserCircle className="w-4 h-4 text-secondary-foreground" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{t('settings.profile')}</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.profileDesc')}</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Admin-only sections */}
         {isAdmin && adminSections.map(({ label, description, icon: Icon, path }) => (
