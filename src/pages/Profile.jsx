@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import AppHeader from '@/components/AppHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Mail, Lock, Save } from 'lucide-react';
+import { User, Mail, Lock, Save, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -16,7 +17,25 @@ export default function Profile() {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
+  const [accountName, setAccountName] = useState('');
+  const [savingAccountName, setSavingAccountName] = useState(false);
   const { t } = useLanguage();
+
+  const isAdmin = user?.role === 'admin';
+
+  const { data: settingsData } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => base44.entities.AppSettings.list('-effective_from'),
+    enabled: isAdmin,
+  });
+
+  const latestSettings = settingsData?.[0];
+
+  useEffect(() => {
+    if (latestSettings) {
+      setAccountName(latestSettings.account_name || '');
+    }
+  }, [latestSettings]);
 
   useEffect(() => {
     if (user) {
@@ -58,6 +77,19 @@ export default function Profile() {
       toast.error(t('profile.toastResetError'));
     } finally {
       setSendingReset(false);
+    }
+  };
+
+  const handleSaveAccountName = async () => {
+    if (!latestSettings) { toast.error(t('salary.toastError')); return; }
+    setSavingAccountName(true);
+    try {
+      await base44.entities.AppSettings.update(latestSettings.id, { account_name: accountName.trim() });
+      toast.success(t('salary.toastSaved'));
+    } catch {
+      toast.error(t('salary.toastError'));
+    } finally {
+      setSavingAccountName(false);
     }
   };
 
@@ -147,6 +179,33 @@ export default function Profile() {
             </CardContent>
           )}
         </Card>
+
+        {/* Family / account name — admin only */}
+        {isAdmin && (
+          <Card className="border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-secondary rounded-lg"><Home className="w-4 h-4 text-secondary-foreground" /></div>
+                <div>
+                  <CardTitle className="text-base">{t('salary.accountNameLabel')}</CardTitle>
+                  <CardDescription className="text-xs">{t('salary.accountNameDesc')}</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Input
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                placeholder={t('salary.accountNamePlaceholder')}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveAccountName()}
+              />
+              <Button onClick={handleSaveAccountName} disabled={savingAccountName} className="w-full gap-2">
+                <Save className="w-4 h-4" />
+                {savingAccountName ? t('profile.saving') : t('profile.saveChanges')}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
       </div>
     </div>

@@ -89,7 +89,6 @@ export default function UserManagement() {
         sent_at: now.toISOString(),
         expires_at: expiresAt.toISOString(),
         invited_by: currentUser?.email,
-        link_based: false,
       });
       toast.success(t('userManagement.toastInviteSent', { email: inviteEmail }));
       setInviteEmail('');
@@ -146,7 +145,7 @@ export default function UserManagement() {
   const handleShareLink = async () => {
     if (!generatedLink) return;
     const shareData = { title: 'Work tracker invitation', url: generatedLink };
-    if (navigator.share && navigator.canShare?.(shareData)) {
+    if (navigator.share) {
       try {
         await navigator.share(shareData);
       } catch (err) {
@@ -182,7 +181,7 @@ export default function UserManagement() {
   const shareExistingLink = async (token) => {
     const link = `${window.location.origin}/join?token=${token}`;
     const shareData = { title: 'Work tracker invitation', url: link };
-    if (navigator.share && navigator.canShare?.(shareData)) {
+    if (navigator.share) {
       try {
         await navigator.share(shareData);
       } catch (err) {
@@ -364,7 +363,7 @@ export default function UserManagement() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                            onClick={() => copyExistingLink(inv.token)}
+                            onClick={() => copyExistingLink(inv.email)}
                             title={t('userManagement.copyLink')}
                           >
                             <Copy className="w-4 h-4" />
@@ -373,7 +372,7 @@ export default function UserManagement() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                            onClick={() => shareExistingLink(inv.token)}
+                            onClick={() => shareExistingLink(inv.email)}
                             title={t('userManagement.shareLink')}
                           >
                             <Share2 className="w-4 h-4" />
