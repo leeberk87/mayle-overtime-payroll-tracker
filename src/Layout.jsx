@@ -4,6 +4,7 @@ import { Home, Settings, ClipboardCheck, Plus } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import useTabNavigation from '@/hooks/useTabNavigation';
 import { useLanguage } from '@/lib/LanguageContext';
+import Onboarding from '@/pages/Onboarding';
 
 
 export default function Layout({ children, currentPageName }) {
@@ -16,6 +17,10 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   const isAdmin = user?.role === 'admin';
+
+  if (user && !user.organization_id) {
+    return <Onboarding user={user} onComplete={() => window.location.reload()} />;
+  }
 
   const navLinkClass = (tab) =>
     `flex flex-col items-center justify-center rounded-xl transition-colors ${

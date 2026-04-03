@@ -1,0 +1,67 @@
+{
+  "name": "Invitation",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Email address the invitation was sent to"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "admin"
+      ],
+      "default": "user",
+      "description": "Role granted upon acceptance"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "expired"
+      ],
+      "default": "pending",
+      "description": "Current status of the invitation"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the invitation was sent"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the invitation expires (7 days after sent)"
+    },
+    "invited_by": {
+      "type": "string",
+      "description": "Email of the admin who sent the invite"
+    },
+    "organization_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "email",
+    "role",
+    "status",
+    "sent_at",
+    "expires_at"
+  ],
+  "rls": {
+    "create": {
+      "organization_id": "{{user.data.organization_id}}"
+    },
+    "read": {
+      "organization_id": "{{user.data.organization_id}}"
+    },
+    "update": {
+      "organization_id": "{{user.data.organization_id}}"
+    },
+    "delete": {
+      "organization_id": "{{user.data.organization_id}}"
+    }
+  }
+}

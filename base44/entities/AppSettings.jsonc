@@ -1,0 +1,75 @@
+{
+  "name": "AppSettings",
+  "type": "object",
+  "properties": {
+    "effective_from": {
+      "type": "string",
+      "description": "Month this setting applies from, in YYYY-MM format"
+    },
+    "base_salary": {
+      "type": "number",
+      "description": "Monthly base salary in NIS",
+      "default": 10000
+    },
+    "transport_allowance": {
+      "type": "number",
+      "description": "Monthly transport allowance in NIS",
+      "default": 250
+    },
+    "overtime_rate": {
+      "type": "number",
+      "description": "Hourly overtime rate in NIS",
+      "default": 65
+    },
+    "organization_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "effective_from",
+    "base_salary",
+    "transport_allowance",
+    "overtime_rate"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "organization_id": "{{user.data.organization_id}}"
+    },
+    "update": {
+      "$and": [
+        {
+          "organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
+          "organization_id": "{{user.data.organization_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

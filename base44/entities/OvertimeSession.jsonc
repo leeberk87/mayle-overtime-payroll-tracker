@@ -1,0 +1,80 @@
+{
+  "name": "OvertimeSession",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the overtime session"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Start time of the session (HH:mm format)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "End time of the session (HH:mm format)"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Calculated duration in minutes (rounded up to nearest 10)"
+    },
+    "ot_pay": {
+      "type": "number",
+      "description": "Calculated overtime pay for this session"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about the session"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "declined"
+      ],
+      "default": "pending",
+      "description": "Approval status of the session"
+    },
+    "submitted_by": {
+      "type": "string",
+      "description": "Email of the user who submitted this entry"
+    },
+    "review_notes": {
+      "type": "string",
+      "description": "Admin review notes or decline reason"
+    },
+    "deletion_requested": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has requested deletion of this entry"
+    },
+    "deletion_reason": {
+      "type": "string",
+      "description": "Reason provided by user for requesting deletion"
+    },
+    "organization_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "date",
+    "start_time",
+    "end_time"
+  ],
+  "rls": {
+    "create": {
+      "organization_id": "{{user.data.organization_id}}"
+    },
+    "read": {
+      "organization_id": "{{user.data.organization_id}}"
+    },
+    "update": {
+      "organization_id": "{{user.data.organization_id}}"
+    },
+    "delete": {
+      "organization_id": "{{user.data.organization_id}}"
+    }
+  }
+}

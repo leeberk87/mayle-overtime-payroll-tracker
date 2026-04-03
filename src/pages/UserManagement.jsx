@@ -89,6 +89,7 @@ export default function UserManagement() {
         sent_at: now.toISOString(),
         expires_at: expiresAt.toISOString(),
         invited_by: currentUser?.email,
+        organization_id: currentUser?.organization_id,
       });
       toast.success(t('userManagement.toastInviteSent', { email: inviteEmail }));
       setInviteEmail('');
@@ -119,6 +120,7 @@ export default function UserManagement() {
         sent_at: now.toISOString(),
         expires_at: expiresAt.toISOString(),
         invited_by: currentUser?.email,
+        organization_id: currentUser?.organization_id,
       });
       const nameParam = linkName.trim() ? `&name=${encodeURIComponent(linkName.trim())}` : '';
       const link = `${window.location.origin}/join?token=${token}${nameParam}`;
