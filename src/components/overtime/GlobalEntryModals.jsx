@@ -13,12 +13,7 @@ export default function GlobalEntryModals() {
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [editingExpense, setEditingExpense] = useState(null);
-  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -52,10 +47,8 @@ export default function GlobalEntryModals() {
   // Create/Update mutation (optimistic)
   const saveMutation = useMutation({
     mutationFn: (payload) => {
-      if (payload.id) {
-        return base44.entities.OvertimeSession.update(payload.id, { ...payload.data, organization_id: user?.organization_id });
-      }
-      return base44.entities.OvertimeSession.create({ ...payload, organization_id: user?.organization_id });
+      if (payload.id) return base44.entities.OvertimeSession.update(payload.id, payload.data);
+      return base44.entities.OvertimeSession.create(payload);
     },
     onMutate: async (payload) => {
       await queryClient.cancelQueries({ queryKey: ['overtime-sessions'] });
@@ -81,10 +74,8 @@ export default function GlobalEntryModals() {
   // Save expense mutation (optimistic)
   const saveExpenseMutation = useMutation({
     mutationFn: (payload) => {
-      if (payload.id) {
-        return base44.entities.Expense.update(payload.id, { ...payload.data, organization_id: user?.organization_id });
-      }
-      return base44.entities.Expense.create({ ...payload, organization_id: user?.organization_id });
+      if (payload.id) return base44.entities.Expense.update(payload.id, payload.data);
+      return base44.entities.Expense.create(payload);
     },
     onMutate: async (payload) => {
       await queryClient.cancelQueries({ queryKey: ['expenses'] });

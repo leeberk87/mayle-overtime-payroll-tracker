@@ -41,9 +41,8 @@ Deno.serve(async (req) => {
 
     const { entity_type, entity_id, submitter_email, submitter_name, entry_date, entry_type } = await req.json();
 
-    // Get all admins in the same organization
-    const orgId = user.organization_id;
-    const allUsers = await base44.asServiceRole.entities.User.filter({ organization_id: orgId });
+    // Get all admins
+    const allUsers = await base44.asServiceRole.entities.User.list();
     const admins = allUsers.filter((u: any) => u.role === 'admin');
 
     for (const admin of admins) {

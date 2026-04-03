@@ -81,18 +81,6 @@ Deno.serve(async (req) => {
       }
       // Trigger base44 platform registration email
       await base44.asServiceRole.users.inviteUser(email, role);
-      
-      try {
-        const existing = await base44.asServiceRole.entities.User.filter({ email });
-        if (existing.length > 0) {
-          await base44.asServiceRole.entities.User.update(existing[0].id, { organization_id: invitation.organization_id, role });
-        } else {
-          await base44.asServiceRole.entities.User.create({ email, role, organization_id: invitation.organization_id });
-        }
-      } catch (e) {
-        console.error(e);
-      }
-
       await base44.asServiceRole.entities.Invitation.update(invitation.id, {
         status: 'accepted',
       });
@@ -115,12 +103,7 @@ Deno.serve(async (req) => {
       }
 
       try {
-        const existing = await base44.asServiceRole.entities.User.filter({ email: userEmail });
-        if (existing.length > 0) {
-          await base44.asServiceRole.entities.User.update(existing[0].id, { organization_id: invitation.organization_id, role });
-        } else {
-          await base44.asServiceRole.entities.User.create({ email: userEmail, role, organization_id: invitation.organization_id });
-        }
+        await base44.asServiceRole.entities.User.create({ email: userEmail, role });
       } catch {
         // User entity may have been auto-created by base44
       }

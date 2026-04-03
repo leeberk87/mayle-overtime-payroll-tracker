@@ -43,10 +43,9 @@ export default function SalarySettings() {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      const dataWithOrg = { ...data, organization_id: user?.organization_id };
       const thisMonthRecord = settingsData?.find(s => s.effective_from === currentMonth);
-      if (thisMonthRecord) return base44.entities.AppSettings.update(thisMonthRecord.id, dataWithOrg);
-      return base44.entities.AppSettings.create(dataWithOrg);
+      if (thisMonthRecord) return base44.entities.AppSettings.update(thisMonthRecord.id, data);
+      return base44.entities.AppSettings.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
