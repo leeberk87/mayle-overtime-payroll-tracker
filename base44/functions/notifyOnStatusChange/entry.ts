@@ -58,8 +58,8 @@ Deno.serve(async (req) => {
     const isApproved = status === 'approved';
 
     // Look up the submitter to get their language preference
-    const allUsers = await base44.asServiceRole.entities.User.list();
-    const submitter = allUsers.find((u: any) => u.email === submitted_by);
+    const submitters = await base44.asServiceRole.entities.User.filter({ email: submitted_by });
+    const submitter = submitters[0];
 
     const lang = getLang(submitter);
     const strings = tr[lang];
