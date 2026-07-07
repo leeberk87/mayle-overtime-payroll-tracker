@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format, subMonths, startOfMonth } from 'date-fns';
+import { useAuth } from '@/lib/AuthContext';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,12 +16,8 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
   const [date, setDate] = useState(new Date());
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser } = useAuth();
   const { t } = useLanguage();
-
-  useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (editingEntry) {
@@ -37,27 +34,45 @@ export default function ExpenseForm({ open, onOpenChange, onSubmit, isLoading, e
 
   const handleSubmit = () => {
     const isAdmin = currentUser?.role === 'admin';
+    const newDate = format(date, 'yyyy-MM-dd');
+
+    // A caregiver edit that changes date, amount, or description must go back
+    // through approval. Only the admin can change an entry without a status reset.
+    const materialChange = editingEntry && (
+      newDate !== (editingEntry.date?.split('T')[0] || editingEntry.date) ||
+      Number(amount) !== (editingEntry.amount || 0) ||
+      description !== (editingEntry.description || '')
+    );
+    const needsReapproval = editingEntry && !isAdmin && materialChange && editingEntry.status !== 'pending';
+
     const payload = {
-      date: format(date, 'yyyy-MM-dd'),
+      date: newDate,
       description,
       amount: Number(amount),
-      // When editing, preserve the existing status so an approved entry stays approved
-      status: editingEntry ? editingEntry.status : (isAdmin ? 'approved' : 'pending'),
-      submitted_by: currentUser?.email || '',
+      status: editingEntry
+        ? (needsReapproval ? 'pending' : editingEntry.status)
+        : (isAdmin ? 'approved' : 'pending'),
+      // Editing must not change who the entry belongs to
+      submitted_by: editingEntry ? editingEntry.submitted_by : (currentUser?.email || ''),
     };
+    if (needsReapproval) payload.review_notes = null;
+
+    const notifyAdmins = () => {
+      base44.functions.invoke('notifyOnSubmission', {
+        entity_type: 'Expense',
+        entity_id: editingEntry?.id || 'pending',
+        submitter_email: currentUser?.email,
+        submitter_name: currentUser?.full_name || currentUser?.email,
+        entry_date: payload.date,
+        entry_type: 'expense',
+      }).catch(() => {});
+    };
+
     if (editingEntry) {
+      if (needsReapproval) notifyAdmins();
       onSubmit({ id: editingEntry.id, data: payload });
     } else {
-      if (!isAdmin) {
-        base44.functions.invoke('notifyOnSubmission', {
-          entity_type: 'Expense',
-          entity_id: 'pending',
-          submitter_email: currentUser?.email,
-          submitter_name: currentUser?.full_name || currentUser?.email,
-          entry_date: payload.date,
-          entry_type: 'expense',
-        }).catch(() => {});
-      }
+      if (!isAdmin) notifyAdmins();
       onSubmit(payload);
     }
   };

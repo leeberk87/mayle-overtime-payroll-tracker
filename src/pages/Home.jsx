@@ -1,10 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
+import useSettings from '@/hooks/useSettings';
 import { format } from 'date-fns';
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Clock, FileText, Receipt, ClipboardCheck } from "lucide-react";
+import { Clock, FileText, Receipt, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from 'react-router-dom';
 
@@ -15,31 +16,18 @@ import SalarySummaryCard from '@/components/overtime/SalarySummaryCard';
 import OvertimeEntryCard from '@/components/overtime/OvertimeEntryCard';
 import MonthSelector from '@/components/overtime/MonthSelector';
 import ExpenseEntryCard from '@/components/overtime/ExpenseEntryCard';
-import PullToRefresh from '@/components/PullToRefresh';
 import { useLanguage } from '@/lib/LanguageContext';
 
 export default function Home() {
-  const [currentUser, setCurrentUser] = useState(null);
-  useEffect(() => { base44.auth.me().then(setCurrentUser).catch(() => {}); }, []);
+  const { user: currentUser } = useAuth();
   const { t } = useLanguage();
 
   const isAdmin = currentUser?.role === 'admin';
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const queryClient = useQueryClient();
 
-  // Fetch all settings snapshots (sorted newest first)
-  const { data: settingsData, isLoading: settingsLoading } = useQuery({
-    queryKey: ['settings'],
-    queryFn: () => base44.entities.AppSettings.list('-effective_from'),
-  });
-
-  // Find the most recent settings snapshot that is <= selected month
-  const settings = useMemo(() => {
-    if (!settingsData?.length) return { base_salary: 10000, transport_allowance: 250, overtime_rate: 65 };
-    const selectedYM = format(selectedMonth, 'yyyy-MM');
-    const match = settingsData.find(s => !s.effective_from || s.effective_from <= selectedYM);
-    return match || settingsData[settingsData.length - 1] || { base_salary: 10000, transport_allowance: 250, overtime_rate: 65 };
-  }, [settingsData, selectedMonth]);
+  // Salary settings snapshot that applies to the selected month (shared hook)
+  const { settings, isLoading: settingsLoading } = useSettings(selectedMonth);
 
   // Fetch all overtime sessions
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
@@ -47,23 +35,29 @@ export default function Home() {
     queryFn: () => base44.entities.OvertimeSession.list('-date'),
   });
 
-  // Filter sessions by selected month (and by user if not admin)
+  // Filter sessions by selected month (and by user if not admin).
+  // Never show entries before the user is known — no data leaks while loading.
   const filteredSessions = useMemo(() => {
+    if (!currentUser) return [];
     const selectedYM = format(selectedMonth, 'yyyy-MM');
     return sessions.filter(session => {
       const sessionYM = (session.date || '').slice(0, 7);
       const inMonth = sessionYM === selectedYM;
-      const ownedByUser = isAdmin || !currentUser || session.submitted_by === currentUser.email;
+      const ownedByUser = isAdmin || session.submitted_by === currentUser.email;
       return inMonth && ownedByUser;
     });
   }, [sessions, selectedMonth, isAdmin, currentUser]);
 
-  // Calculate totals (approved + pending, exclude declined)
-  const { totalOtPay, totalOtHours } = useMemo(() => {
-    const countable = filteredSessions.filter(s => s.status !== 'declined');
-    const pay = countable.reduce((sum, s) => sum + (s.ot_pay || 0), 0);
-    const minutes = countable.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
-    return { totalOtPay: pay, totalOtHours: minutes / 60 };
+  // Totals count approved entries only, matching the monthly email and PDF.
+  // Pending money is tracked separately so the card can show it as "awaiting approval".
+  const { totalOtPay, totalOtHours, pendingOtPay } = useMemo(() => {
+    const approved = filteredSessions.filter(s => s.status === 'approved');
+    const pay = approved.reduce((sum, s) => sum + (s.ot_pay || 0), 0);
+    const minutes = approved.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
+    const pending = filteredSessions
+      .filter(s => s.status === 'pending')
+      .reduce((sum, s) => sum + (s.ot_pay || 0), 0);
+    return { totalOtPay: pay, totalOtHours: minutes / 60, pendingOtPay: pending };
   }, [filteredSessions]);
 
   // Delete mutation (optimistic)
@@ -108,19 +102,24 @@ export default function Home() {
     queryFn: () => base44.entities.Expense.list('-date'),
   });
 
-  // Filter expenses by month (and by user if not admin)
+  // Filter expenses by month (and by user if not admin) — same no-leak rule as sessions
   const filteredExpenses = useMemo(() => {
+    if (!currentUser) return [];
     const selectedYM = format(selectedMonth, 'yyyy-MM');
     return expenses.filter(e => {
       const expenseYM = (e.date || '').slice(0, 7);
       const inMonth = expenseYM === selectedYM;
-      const ownedByUser = isAdmin || !currentUser || e.submitted_by === currentUser.email;
+      const ownedByUser = isAdmin || e.submitted_by === currentUser.email;
       return inMonth && ownedByUser;
     });
   }, [expenses, selectedMonth, isAdmin, currentUser]);
 
   const totalExpenses = useMemo(() =>
-    filteredExpenses.filter(e => e.status !== 'declined').reduce((sum, e) => sum + (e.amount || 0), 0),
+    filteredExpenses.filter(e => e.status === 'approved').reduce((sum, e) => sum + (e.amount || 0), 0),
+  [filteredExpenses]);
+
+  const pendingExpenseTotal = useMemo(() =>
+    filteredExpenses.filter(e => e.status === 'pending').reduce((sum, e) => sum + (e.amount || 0), 0),
   [filteredExpenses]);
 
   const pendingCount = useMemo(() => {
@@ -221,11 +220,12 @@ export default function Home() {
         {isLoading ? (
           <Skeleton className="h-64 w-full rounded-xl" />
         ) : (
-          <SalarySummaryCard 
-            settings={settings} 
+          <SalarySummaryCard
+            settings={settings}
             totalOtPay={totalOtPay}
             totalOtHours={totalOtHours}
             totalExpenses={totalExpenses}
+            pendingTotal={pendingOtPay + pendingExpenseTotal}
           />
         )}
 

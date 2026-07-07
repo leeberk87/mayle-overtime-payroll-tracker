@@ -10,6 +10,7 @@ import AppHeader from '@/components/AppHeader';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useAuth } from '@/lib/AuthContext';
 
 function ReviewCard({ item, entityType, onApprove, onDecline, isProcessing }) {
   const [reviewNotes, setReviewNotes] = useState('');
@@ -125,14 +126,9 @@ function DeletionRequestCard({ item, entityType, onConfirmDelete, onRejectDeleti
 }
 
 export default function ApprovalDashboard() {
-  const [user, setUser] = React.useState(null);
-  const [authLoading, setAuthLoading] = React.useState(true);
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
-
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {}).finally(() => setAuthLoading(false));
-  }, []);
 
   const { data: pendingSessions = [], isLoading: sessionsLoading } = useQuery({
     queryKey: ['pending-sessions'],
@@ -249,10 +245,6 @@ export default function ApprovalDashboard() {
   });
 
   const isProcessing = approveMutation.isPending || declineMutation.isPending || confirmDeleteMutation.isPending || rejectDeletionMutation.isPending;
-
-  if (authLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
-  }
 
   if (user?.role !== 'admin') {
     return <Navigate to="/" replace />;

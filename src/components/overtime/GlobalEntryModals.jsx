@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from "sonner";
-import { format } from 'date-fns';
+import useSettings from '@/hooks/useSettings';
 import AddEntryMenu from '@/components/overtime/AddEntryMenu';
 import OvertimeForm from '@/components/overtime/OvertimeForm';
 import ExpenseForm from '@/components/overtime/ExpenseForm';
@@ -31,18 +31,9 @@ export default function GlobalEntryModals() {
     return () => window.removeEventListener('open-add-entry-menu', handler);
   }, []);
 
-  const { data: settingsData } = useQuery({
-    queryKey: ['settings'],
-    queryFn: () => base44.entities.AppSettings.list('-effective_from'),
-  });
-
-  const settings = useMemo(() => {
-    if (!settingsData?.length) return { base_salary: 10000, transport_allowance: 250, overtime_rate: 65 };
-    const dateToUse = editingEntry?.date ? new Date(editingEntry.date) : new Date();
-    const selectedYM = format(dateToUse, 'yyyy-MM');
-    const match = settingsData.find(s => !s.effective_from || s.effective_from <= selectedYM);
-    return match || settingsData[settingsData.length - 1] || { base_salary: 10000, transport_allowance: 250, overtime_rate: 65 };
-  }, [settingsData, editingEntry]);
+  // Rate snapshot for the month being edited (or the current month for new entries)
+  const editingYM = editingEntry?.date ? String(editingEntry.date).slice(0, 7) : undefined;
+  const { settings } = useSettings(editingYM);
 
   // Create/Update mutation (optimistic)
   const saveMutation = useMutation({

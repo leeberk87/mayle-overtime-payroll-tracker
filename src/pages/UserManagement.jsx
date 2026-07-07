@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AppHeader from '@/components/AppHeader';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ const INVITE_TAB_EMAIL = 'email';
 const INVITE_TAB_LINK = 'link';
 
 export default function UserManagement() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser } = useAuth();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteTab, setInviteTab] = useState(INVITE_TAB_LINK);
 
@@ -32,10 +33,6 @@ export default function UserManagement() {
 
   const queryClient = useQueryClient();
   const { t } = useLanguage();
-
-  useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(() => {});
-  }, []);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],

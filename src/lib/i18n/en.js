@@ -255,6 +255,7 @@ const en = {
     overtimePay: 'Overtime Pay',
     worked: '{hours} worked',
     expenses: 'Expenses',
+    pendingApproval: 'Awaiting approval (not included)',
     grandTotal: 'Grand Total',
   },
   addMenu: {

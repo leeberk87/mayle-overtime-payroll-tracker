@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format, subMonths, startOfMonth } from 'date-fns';
+import { useAuth } from '@/lib/AuthContext';
+import { calculateOvertime } from '@/lib/payroll';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BottomSheet } from '@/components/ui/BottomSheet';
-import { CalendarIcon, Save, X } from "lucide-react";
+import { CalendarIcon, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TimePicker from './TimePicker';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -18,12 +20,8 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
   const [endTime, setEndTime] = useState('');
   const [notes, setNotes] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: currentUser } = useAuth();
   const { t } = useLanguage();
-
-  useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(() => {});
-  }, []);
 
   // Populate form when editing
   React.useEffect(() => {
@@ -42,60 +40,54 @@ export default function OvertimeForm({ open, onOpenChange, onSubmit, settings, i
     }
   }, [editingEntry, open]);
 
-  const calculateDurationAndPay = () => {
-    if (!startTime || !endTime) return { duration: 0, pay: 0 };
-
-    const [startH, startM] = startTime.split(':').map(Number);
-    const [endH, endM] = endTime.split(':').map(Number);
-
-    let totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-    if (totalMinutes < 0) totalMinutes += 24 * 60; // Handle overnight
-
-    // Cap at 12 hours to prevent accidental all-day entries (e.g. 08:00–07:00 = 23h)
-    if (totalMinutes > 720) return { duration: 0, pay: 0 };
-
-    // Round to nearest 15 minutes (FLSA standard)
-    const roundedMinutes = Math.round(totalMinutes / 15) * 15;
-
-    const hourlyRate = settings?.overtime_rate || 65;
-    const pay = Math.round((roundedMinutes / 60) * hourlyRate);
-
-    return { duration: roundedMinutes, pay };
-  };
-
-  const { duration, pay } = calculateDurationAndPay();
+  const { duration, pay } = calculateOvertime(startTime, endTime, settings?.overtime_rate);
   const hours = Math.floor(duration / 60);
   const mins = duration % 60;
 
   const handleSubmit = () => {
-    const { duration, pay } = calculateDurationAndPay();
-
     const isAdmin = currentUser?.role === 'admin';
+    const newDate = format(date, 'yyyy-MM-dd');
+
+    // A caregiver edit that changes date, times, or pay must go back through approval.
+    // Only the admin (the approver) can change an entry without resetting its status.
+    const materialChange = editingEntry && (
+      newDate !== (editingEntry.date?.split('T')[0] || editingEntry.date) ||
+      startTime !== editingEntry.start_time ||
+      endTime !== editingEntry.end_time
+    );
+    const needsReapproval = editingEntry && !isAdmin && materialChange && editingEntry.status !== 'pending';
+
     const data = {
-      date: format(date, 'yyyy-MM-dd'),
+      date: newDate,
       start_time: startTime,
       end_time: endTime,
       duration_minutes: duration,
       ot_pay: pay,
       notes: notes.trim() || null,
-      // When editing, preserve the existing status so an approved entry stays approved
-      status: editingEntry ? editingEntry.status : (isAdmin ? 'approved' : 'pending'),
-      submitted_by: currentUser?.email || '',
+      status: editingEntry
+        ? (needsReapproval ? 'pending' : editingEntry.status)
+        : (isAdmin ? 'approved' : 'pending'),
+      // Editing must not change who the entry belongs to
+      submitted_by: editingEntry ? editingEntry.submitted_by : (currentUser?.email || ''),
+    };
+    if (needsReapproval) data.review_notes = null;
+
+    const notifyAdmins = () => {
+      base44.functions.invoke('notifyOnSubmission', {
+        entity_type: 'OvertimeSession',
+        entity_id: editingEntry?.id || 'pending',
+        submitter_email: currentUser?.email,
+        submitter_name: currentUser?.full_name || currentUser?.email,
+        entry_date: data.date,
+        entry_type: 'overtime',
+      }).catch(() => {});
     };
 
     if (editingEntry) {
+      if (needsReapproval) notifyAdmins();
       onSubmit({ id: editingEntry.id, data });
     } else {
-      if (!isAdmin) {
-        base44.functions.invoke('notifyOnSubmission', {
-          entity_type: 'OvertimeSession',
-          entity_id: 'pending',
-          submitter_email: currentUser?.email,
-          submitter_name: currentUser?.full_name || currentUser?.email,
-          entry_date: data.date,
-          entry_type: 'overtime',
-        }).catch(() => {});
-      }
+      if (!isAdmin) notifyAdmins();
       onSubmit(data);
     }
   };

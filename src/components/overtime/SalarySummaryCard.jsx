@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, Car, Clock, TrendingUp, Receipt } from "lucide-react";
 import { useLanguage } from '@/lib/LanguageContext';
 
-export default function SalarySummaryCard({ settings, totalOtPay, totalOtHours, totalExpenses = 0 }) {
+export default function SalarySummaryCard({ settings, totalOtPay, totalOtHours, totalExpenses = 0, pendingTotal = 0 }) {
   const { t } = useLanguage();
-  const baseSalary = settings?.base_salary || 10000;
-  const transport = settings?.transport_allowance || 250;
+  const baseSalary = settings?.base_salary || 0;
+  const transport = settings?.transport_allowance || 0;
   const grandTotal = baseSalary + transport + totalOtPay + totalExpenses;
 
   const otHoursDisplay = totalOtHours > 0
@@ -56,6 +56,14 @@ export default function SalarySummaryCard({ settings, totalOtPay, totalOtHours, 
             <p className="text-xl font-semibold text-orange-400">+₪{totalExpenses.toLocaleString()}</p>
           </div>
         </div>
+
+        {/* Money submitted but not yet approved — kept out of the grand total */}
+        {pendingTotal > 0 && (
+          <div className="flex justify-between items-center text-xs text-amber-300/90">
+            <span>{t('summaryCard.pendingApproval')}</span>
+            <span className="font-medium">₪{pendingTotal.toLocaleString()}</span>
+          </div>
+        )}
 
         <div className="border-t border-white/20 pt-3">
           <div className="flex justify-between items-center">

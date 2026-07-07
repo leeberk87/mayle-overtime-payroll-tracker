@@ -1,6 +1,5 @@
 import React from 'react';
 import { format, addMonths, subMonths } from 'date-fns';
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 
 export default function MonthSelector({ currentMonth, onChange }) {

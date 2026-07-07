@@ -255,6 +255,7 @@ const he = {
     overtimePay: 'שעות נוספות',
     worked: '{hours} עבד',
     expenses: 'הוצאות',
+    pendingApproval: 'ממתין לאישור (לא נכלל)',
     grandTotal: 'סה"כ',
   },
   addMenu: {

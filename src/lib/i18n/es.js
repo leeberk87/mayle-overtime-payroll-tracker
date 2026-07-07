@@ -255,6 +255,7 @@ const es = {
     overtimePay: 'Horas Extra',
     worked: '{hours} trabajadas',
     expenses: 'Gastos',
+    pendingApproval: 'Pendiente de aprobación (no incluido)',
     grandTotal: 'Total',
   },
   addMenu: {

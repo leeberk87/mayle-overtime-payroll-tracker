@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,16 +14,11 @@ import { useLanguage } from '@/lib/LanguageContext';
 
 export default function SalarySettings() {
   const queryClient = useQueryClient();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [baseSalary, setBaseSalary] = useState(10000);
-  const [transport, setTransport] = useState(250);
-  const [overtimeRate, setOvertimeRate] = useState(65);
+  const { user } = useAuth();
+  const [baseSalary, setBaseSalary] = useState('');
+  const [transport, setTransport] = useState('');
+  const [overtimeRate, setOvertimeRate] = useState('');
   const { t } = useLanguage();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {}).finally(() => setLoading(false));
-  }, []);
 
   const { data: settingsData, isLoading } = useQuery({
     queryKey: ['settings'],
@@ -33,9 +29,9 @@ export default function SalarySettings() {
 
   useEffect(() => {
     if (latestSettings) {
-      setBaseSalary(latestSettings.base_salary || 10000);
-      setTransport(latestSettings.transport_allowance || 250);
-      setOvertimeRate(latestSettings.overtime_rate || 65);
+      setBaseSalary(latestSettings.base_salary ?? '');
+      setTransport(latestSettings.transport_allowance ?? '');
+      setOvertimeRate(latestSettings.overtime_rate ?? '');
     }
   }, [latestSettings]);
 
@@ -64,7 +60,6 @@ export default function SalarySettings() {
     saveMutation.mutate({ effective_from: currentMonth, base_salary: salary, transport_allowance: trans, overtime_rate: rate });
   };
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><Skeleton className="h-32 w-32 rounded-xl" /></div>;
   if (user?.role !== 'admin') return <Navigate to="/" replace />;
 
   return (
